@@ -5,9 +5,11 @@
       <h1 class="title">
         almogtama3.com
       </h1>
-      <h2 class="subtitle">
-      /user/{{params.id}}
+      <h2 id="test" class="subtitle">
+        /user/{{ params.id }}
       </h2>
+      <p><b>Context object:<b><br >{{ ctx }}</b></b></p>
+      <div>{{ test }}</div>
       <div class="links">
         <a
           href="https://nuxtjs.org/"
@@ -22,6 +24,8 @@
   </section>
 </template>
 
+
+
 <script>
 import Logo from '~/components/Logo.vue'
 
@@ -29,24 +33,38 @@ export default {
   components: {
     Logo
   },
-  data () {
-  return {
-    title: 'Almogtama3!'
-  }
-},
-  head(){
-     return {
-       title: `User | ${this.title}`
-     }
+  data() {
+    //runs on client
+    return {
+      title: 'Almogtama3!',
+      test: '==' //document.getElementById("test").innerHTML, -> move to mounted()
+    }
   },
+  asyncData(context) {
+    //runs on server before initiate Vue instance & will be merged to data object
+    //if (process.browser) {console.log('The window object:', window)}
+    return {
+      params: context.params,
+      ctx: '$context' //context
+    }
+  },
+  /*fetch ({ store, params }){ //same as asyncData , but will not be merged to data object
+   return new promise()
+    .then((x)=>{})
+},*/
+  head() {
+    //title & meta
+    return {
+      title: `User | ${this.title}`
+    }
+  },
+  watchQuery: ['id'], //watch query changes
 
- asyncData (context){
-  return{
-      params:context.params,
-  }
-},
-}
-</script>
+  //Events
+  mounted() {
+    //will be excuted after Vue instance created, so it can hold browser vars (i.e window, document)
+   }
+}</script>
 
 <style>
 .container {
