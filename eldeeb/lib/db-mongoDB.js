@@ -2,7 +2,7 @@ const mongoose = require('mongoose'),
      eldeeb = require('./index.js')
 
 module.exports = class db_mongoDB/* extends mongoose.constructor*/ { //mongoose/lib/index.js exports new mongoose(), not the class itself; also mongoose is a Function
-  constructor(options,callback){
+  constructor(options,callback){ //nx: return Promise
   //note: if this class didn't extends mongoose, 1- don't use super() 2- use mongoose instead of this to access mongoose properties
   //when extends
     //super(options)

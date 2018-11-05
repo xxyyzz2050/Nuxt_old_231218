@@ -99,9 +99,13 @@ module.exports = {
   },*/
 
   //Loading modules
-  db(type) {
-    if (typeof type == 'undefined' || type == 'mongo' || type == 'mongoose')
-      type = 'mongoDB'
-    return require(`./db-${type}.js`) //nx: if file_exists
+  db(type,options,callback) { 
+    if (typeof type == 'undefined' || type == 'mongo' || type == 'mongoose')type = 'mongoDB'
+    else if(this.objectType(type)=="object"){
+      callback=options,options=type,type="mongoDB"
+    }
+
+    var db=require(`./db-${type}.js`) //nx: if file_exists
+    if(options)return new db(options,callback); else return db;
   }
 }
