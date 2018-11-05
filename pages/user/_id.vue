@@ -10,7 +10,9 @@
       </h2>
       <p><b>Context object:<b><br >{{ ctx }}</b></b></p>
       <div>{{ test }}</div>
+      <div>{{ test2 }}</div>
       <div class="links">
+        <nuxt-link to="/" class="button--green">HomePage (internal link)</nuxt-link>
         <a
           href="https://nuxtjs.org/"
           target="_blank"
@@ -37,7 +39,8 @@ export default {
     //runs on client
     return {
       title: 'Almogtama3!',
-      test: '==' //document.getElementById("test").innerHTML, -> move to mounted()
+      test: '==', //document.getElementById("test").innerHTML, -> move to mounted()
+      test2: "document.getElementById('test').innerHTML", //not work, will rendered as a string in the server side
     }
   },
   asyncData(context) {

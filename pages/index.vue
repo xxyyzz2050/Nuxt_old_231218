@@ -9,6 +9,7 @@
         almogtama3.com
       </h2>
       <div class="links">
+        <nuxt-link to="/user/123" class="button--green">User (internal link)</nuxt-link>
         <a
           href="https://nuxtjs.org/"
           target="_blank"
