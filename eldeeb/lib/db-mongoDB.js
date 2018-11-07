@@ -154,7 +154,8 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
             'disconnecting',
             'index',
             'close',
-            'error'
+            'error',
+            'open'
           ],
           function(event) {
             callback(event, db)
@@ -185,11 +186,13 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           //console.log('conn:', this.connection) //OK
           //console.log('ev:', this.connection.on('error', function() {})) //error!
           if (event instanceof Array) {
-            for (var i = 0; i < event.length; i++)
-              ev.appl(this.connection, event[i], function(ev) {
-                console.log('==ev==', ev)
+            for (let i = 0; i < event.length; i++) {
+              //nx: useing var instead of let gives a wrong (i) inside function(){..}, why?
+              ev.call(this.connection, event[i], function() {
                 callback(event[i])
-              }) //nx: pass event name to callback ex: this.on(['ev1','ev2'],function(ev){callback(ev,x,y)})
+              })
+              console.log(i)
+            }
           } else ev.call(this.connection, event, callback) //nx: if once .once(..)
         }
         return this //chaining this function will NOT wait it to finish, so on(error,fn).on(open,fn) will work fine
