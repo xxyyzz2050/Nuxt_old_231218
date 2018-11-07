@@ -1,37 +1,52 @@
 const eldeeb = require('./index.js')
-module.exports = class promise {
+module.exports = class promise extends Promise {
   run(mark, fn) {
     if (typeof mark == 'string') mark = 'promise/' + mark
     else if (mark instanceof Array) mark[0] = 'promise/' + mark[0]
     return eldeeb.run(mark, fn)
   }
 
-  limit(fn, seconds, ...args) {
+  wait(seconds) {
+    //delay the excution of fn()
+    return this.run('delay', () => {
+      return new Promise(resolve => setTimeout(resolve, seconds * 1000))
+    })
+  }
+
+  when(fn) {
+    //wait untin fn finish excuting
+  }
+
+  done(fn, stop) {
+    next = this.then(fn)
+    if (stop) {
+      /*stop the chain , from jQuery.Deferred().done()*/
+    }
+    return next
+  }
+
+  fail(fn, stop) {
+    /*
+       1- .then(null,fn)
+       2- catch(e)
+       3- if(stop)stop the chain
+    */
+  }
+
+  limit(seconds, ...fn) {
+    //nx: limit(1000).then().then() //or .exec()
     //max time limit for excuting fn()
-    this.run('limit', ()=>{
+    return this.run('limit', () => {
       return Promise.race([
-        fn(...args),
         new Promise(
           (resolve, reject) =>
             setTimeout(
               () => reject(new Error('request timeout')),
               seconds * 1000
             ) //nx: custom error
-        )
+        ),
+        ...fn
       ])
     })
   }
-
-  delay(fn, seconds, ...args) {
-    //delay the excution of fn()
-    this.run('delay',()=>{
-      return seconds => {
-        if (typeof fn == 'function')
-          new Promise(resolve => setTimeout(fn(...args), seconds * 1000))
-        else if (typeof fn == 'string')
-          new Promise(resolve => setTimeout(fn, seconds * 1000))
-      }
-    }
-    })
-
 }

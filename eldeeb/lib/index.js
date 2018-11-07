@@ -1,7 +1,7 @@
 module.exports = {
   op: {
     //options
-    log: true, //nx: min log level
+    log: false, //nx: min log level
     minLogLevel: 'log', //log,warn,error (verbose)
     debug: false
   },
@@ -98,6 +98,30 @@ module.exports = {
     }
     cns(...msg);
   },*/
+
+  merge(target, ...obj) {
+    //merge objects,arrays,classes (must besame type) ;
+    return this.run(['merge', target, ...obj], () => {
+      type = this.objectType(target)
+      for (var i = 1; i < arguments.length; i++) {
+        if (this.objectType(arguments[i]) !== type) return target
+      }
+      if (type == 'array') {
+        target = target.concat(...obj)
+      } else if (type == 'object') {
+        //target=Object.assign(target,...obj) //later objects dosen't override previous ones
+        for (var i = 1; i < arguments.length; i++) {
+          for (var p in arguments[i]) {
+            target[p] = arguments[i][p] //to override current values
+          }
+        }
+      } else if (type == 'class') {
+        //add or override target's methods & properties
+      }
+
+      return target
+    })
+  },
 
   //Loading modules
   db(type, options, callback) {
