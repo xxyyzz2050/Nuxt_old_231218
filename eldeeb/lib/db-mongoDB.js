@@ -191,7 +191,6 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
               ev.call(this.connection, event[i], function() {
                 callback(event[i])
               })
-              console.log(i)
             }
           } else ev.call(this.connection, event, callback) //nx: if once .once(..)
         }
