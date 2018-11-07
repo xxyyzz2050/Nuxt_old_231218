@@ -6,6 +6,7 @@ module.exports = {
     debug: false
   },
   run: function(mark, fn) {
+    //always use arrow function to keep "this" referce to the original function context (not "run()" context)
     //nx: mark="eldeeb:"+this.run.caller (not allowed in strict mode), https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments/callee
     /*
      if fn returns a value, you mast return this.run()
@@ -99,13 +100,21 @@ module.exports = {
   },*/
 
   //Loading modules
-  db(type,options,callback) { 
-    if (typeof type == 'undefined' || type == 'mongo' || type == 'mongoose')type = 'mongoDB'
-    else if(this.objectType(type)=="object"){
-      callback=options,options=type,type="mongoDB"
+  db(type, options, callback) {
+    if (typeof type == 'undefined' || type == 'mongo' || type == 'mongoose')
+      type = 'mongoDB'
+    else if (this.objectType(type) == 'object') {
+      ;(callback = options), (options = type), (type = 'mongoDB')
     }
 
-    var db=require(`./db-${type}.js`) //nx: if file_exists
-    if(options)return new db(options,callback); else return db;
+    var db = require(`./db-${type}.js`) //nx: if file_exists
+    if (options) return new db(options, callback)
+    else return db
+  },
+
+  promise() {
+    //eldeeb = this
+    promise = require('./promise.js')
+    return new promise()
   }
 }
