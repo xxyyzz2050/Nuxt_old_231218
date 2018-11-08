@@ -1,5 +1,6 @@
 const mongoose = require('mongoose'),
   eldeeb = require('./index.js')
+eldeeb.op.mark = 'mongoDB'
 
 module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   //mongoose/lib/index.js exports new mongoose(), not the class itself; also mongoose is a Function
@@ -22,6 +23,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
       delete options.pk
     } else this.pk == '__id'
 
+    if (!('models' in options)) options['models'] = '..'
     this.connection = null
     this.options = options || {}
 
@@ -38,12 +40,6 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
       ) //auto establish a connection; set to false when you like to set some properties to mongoose interface before establishing a connection
 
     return this
-  }
-
-  run(mark, fn) {
-    if (typeof mark == 'string') mark = 'mongoDB/' + mark
-    else if (mark instanceof Array) mark[0] = 'mongoDB/' + mark[0]
-    return eldeeb.run(mark, fn)
   }
 
   connect(options, callback) {
@@ -67,7 +63,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     }
     delete options['debug']
 
-    return this.run(['connect', options /*,callback*/], () => {
+    return eldeeb.run(['connect', options /*,callback*/], () => {
       if (eldeeb.isEmpty(options)) {
         if (!eldeeb.isEmpty(this.options)) options = this.options
         else {
@@ -177,7 +173,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     /*
     ev(event,callback) will not work because it cantains "this" whitch refers to this.connection, not to this class
     so we use ev.call() to change the context to this.connection
-   */ return this.run(
+   */ return eldeeb.run(
       'on',
       () => {
         if (this.connection) {
@@ -205,7 +201,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   _schema(obj, options) {
     //this.Schema != super.Schema without this function ; nx: not called by model() if it's name is "Schema"
     let $this = this
-    return this.run(['schema', obj], () => {
+    return eldeeb.run(['schema', obj], () => {
       options = options || { autoIndex: false }
       if (!('autoIndex' in options)) options['autoIndex'] = false
       return new mongoose.Schema(obj, options) //nx: $this.Schema != mongoose.Schema
@@ -214,7 +210,12 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
 
   model(coll, schema, options) {
     if (!this.connection) return null
-    return this.run(['model', schema, options], () => {
+    return eldeeb.run(['model', schema, options], () => {
+      if (typeof schema == 'string')
+        schema = require(`${schema}/${coll}.js`) || {}
+      else if (schema == null || typeof schema == 'undefined') {
+        schema = require(`${this.options.models}/${coll}.js`) || {}
+      }
       if (!(schema instanceof mongoose.Schema)) {
         options = options || {}
         if (!('collection' in options)) options['collection'] = coll
@@ -230,4 +231,8 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   }
 
   get() {}
+
+  then(ok, err) {
+    return then(ok, err)
+  }
 }

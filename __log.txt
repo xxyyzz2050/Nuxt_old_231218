@@ -1,0 +1,16 @@
+class db extends mongoDB {
+  constructor(options, callback) {
+    //to prevent autoConnect put options=null
+    if (typeof options == 'function') {
+      callback = options
+      options = {}
+    }
+    options = eldeeb.merge(options, defaultOptions) || options
+    return super(options, callback)
+  }
+
+  model(model) {
+    return this.model(require(`./${model}.js`))
+  }
+}
+undefined
