@@ -30,19 +30,9 @@ module.exports = class promise extends Promise {
     //wait until fn finish excuting, fn() has to settle (resolve or reject) the promise
 
     return eldeeb.run('when', () => {
-      let promise; console.log('type: ',eldeeb.objectType(fn))
-      if (eldeeb.objectType(fn) == 'promise',fn) {
-        promise = fn
-      } /*else if (fn instanceof this.constructor) {
-           //Don't use 'instanceof this' https://stackoverflow.com/a/53204052/9474643
-           //error: using this before super()
-            promise=fn.promise
-         }*/ else {
-        if (typeof fn != 'function') fn = r => r()
-        //  try {resolve(fn(resolve, reject))} catch (e) {reject(e)} //wrong: this causes resolving the promise immediatly, called to resolve or reject it
-        promise = super(fn)
-      }
-      this.promise = promise
+    if (typeof fn != 'function') fn = r => r()
+        let promise = super(fn)
+        this.promise = promise
       if (done || failed) return this.then(done, failed, stop)
       return this //don't return promise to enable chaining for other (non-promise) functions such as done() and to customise then
     })
