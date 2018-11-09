@@ -24,6 +24,7 @@ promise.finally() is 'Draft' https://developer.mozilla.org/en-US/docs/Web/JavaSc
 
          Don't use custom methode by this class after Native Promise methods until it have been overridden, because they return promise (not "this")
 */
+
 module.exports = class promise extends Promise {
   constructor(fn, done, failed, stop) {
     super(r => {
@@ -106,7 +107,8 @@ module.exports = class promise extends Promise {
     //nx: if(stop)exit the chain i.e don't run the next functions then(),done(),fail()
     // promise.then()  return this ;use the original promise don't create a new one and don't pass the promise to then()
 
-    //nx: if the promise not settled call this.resolve() first
+    //nx: if the promise not settled call this.resolve()
+    //nx: check if this.promise is array,(returned from this.all()), in this case it must pass array of values
     this.promise.then(done, fail)
     if (stop) return this.stop()
     return this
@@ -166,14 +168,18 @@ module.exports = class promise extends Promise {
   //###### static methods: race,all,reject,resolve; use Promice.race() not this.promise.race
   race(promises, done, fail) {
     promises = this.promises(promises)
-    if (promises) Promise.race(promises).then(done, fail)
+    if (promises) {
+      Promise.race(promises).then(done, fail)
+      this.promise = promises
+    }
     return this
   }
 
   all(promises, done, fail) {
-    //nx: promises must be iterable (also in .race())
-    promises = this.promises(promises)
-    if (promises) Promise.all(promises).then(done, fail) //done() accept array of arguments, one for each promise
+    if (promises) {
+      Promise.all(promises).then(done, fail)
+      this.promise = promises //to pass the correct promises to the next then() in the chain
+    } //done() accept array of arguments, one for each promise
     return this
     /*
     nx:
@@ -182,11 +188,12 @@ module.exports = class promise extends Promise {
     */
   }
   promises(promises) {
-    if (eldeeb.objectType(promises) != 'array') return //nx: or any iterable
+    if (!eldeeb.isArray(promises)) return //nx: or any iterable ->see eldeeb.isArray()
     /*for (let i = 0; i < promises.length; i++) {
       if (promises[i] instanceof this.constructor) promises[i] = this.promise // promises[i].promise
       //wrong: this passes a different promise, use it just after creating/modifing the promise ex: promises=[p.wait(1).promise,p.wait(2).promise]
     }*/
+    promises = this.promises(promises)
     return promises
   }
 

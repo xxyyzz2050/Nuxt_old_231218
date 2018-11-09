@@ -1,5 +1,12 @@
-function test(a, b) {
-  console.log(a, b)
-}
+eldeeb = require('../lib/')
 
-setTimeout(test, 0, 1, 2)
+console.log('null: ', eldeeb.objectType(null))
+console.log('string: ', eldeeb.objectType('aa'))
+console.log('number: ', eldeeb.objectType(123))
+console.log('number: ', eldeeb.objectType(123.4))
+console.log('function: ', eldeeb.objectType(() => {}))
+console.log('function: ', eldeeb.objectType(function() {}))
+console.log('Array: ', eldeeb.objectType([1, 2, 3]))
+console.log('undefined: ', eldeeb.objectType(undefined))
+console.log('object: ', eldeeb.objectType({ x: 1 }))
+//console.log('iterator: ', eldeeb.objectType(null))

@@ -6,7 +6,8 @@ module.exports = {
     debug: false,
     mark: '' //mark prefix
   },
-  run: function(mark, promise, fn) { return promise() //true
+  run: function(mark, promise, fn) {
+    return promise() //true
     //nx:use this.promise()
     //always use arrow function to keep "this" referce to the original function context (not "run()" context)
     //nx: mark="eldeeb:"+this.run.caller (not allowed in strict mode), https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments/callee
@@ -76,6 +77,25 @@ module.exports = {
       }\n->` /*, (extra ? extra : "")*/
     )
     //console.error("Error @eldeeb: " + at + "(" + e.name + "): " + e.message + " @" + (e.lineNumber || "") + ":" + (e.columnNumber || "") + " in: " + (e.fileName || "--") + " \n->", (extra ? extra : "")) //+"; by:"+(e.stack||e.description||"")
+  },
+  isArray: function(obj) {
+    return
+    this.objectType(obj) == 'null' ||
+      'undefined' ||
+      'object' ||
+      typeof obj[Symbol.iterator] == 'function'
+  },
+  inArray: function(str, arr, keepCase) {
+    return this.run(['eldeeb/inArray', str, arr, keepCase], () => {
+      if (!keepCase && typeof str == 'string') str = str.toLowerCase()
+      if (this.isArray(arr)) {
+        for (var i = 0; i < arr.length; i++) {
+          if (!keepCase && typeof arr[i] == 'string')
+            arr[i] = arr[i].toLowerCase()
+          if (arr[i] == str) return true
+        }
+      } else if (typeof arr == 'object') return str in arr
+    })
   },
   sleep: function(seconds) {
     //to pause a js function make it async and use await sleep(duration);
