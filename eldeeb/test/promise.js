@@ -26,7 +26,7 @@ promise
   )
   .done(x => console.log(x))
   .catch(e => console.error(e))
-
+/*
 //######## promise.all()
 //inline .then() & using .promise ->correct
 promise.all(
@@ -55,5 +55,5 @@ promise
   .all([promise.wait(1).promise, promise.wait(2).promise, true])
   .done(values => console.log('all/separated + .promise: ', values)) //nx: values must be array [1,2]
   .fail(e => console.log('all/fail: ', e))
-
+*/
 //nx: wait()=>clearTimeout

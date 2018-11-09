@@ -26,41 +26,35 @@ promise.finally() is 'Draft' https://developer.mozilla.org/en-US/docs/Web/JavaSc
 */
 
 module.exports = class promise extends Promise {
-  constructor(fn, done, failed, stop) {
-    super(r => {
-      r()
-    })
-    return this.when(fn, done, failed, stop)
-  }
-  when(fn, done, failed, stop) {
-    //console.log("fn: ",typeof fn,fn)
+  constructor(fn, done, failed) {
     //wait until fn finish excuting, fn() has to settle (resolve or reject) the promise
-    return eldeeb.run('when', () => {
-      if (typeof fn == 'function') {
-        //nx: check if returns a thenable object
-        this.promise = new Promise((resolve, reject) => {
-          //  try {resolve(fn(resolve, reject))} catch (e) {reject(e)} //wrong: this causes resolving the promise immediatly, called to resolve or reject it
-          fn(resolve, reject)
-        })
-      } else if (eldeeb.objectType(fn) == 'promise') {
-        this.promise = fn
-      } else if (
-        eldeeb.objectType(fn) == 'object' &&
-        fn.then &&
-        typeof obj.then == 'function'
-      ) {
-        //thenable object
-      } else if (fn instanceof this.constructor) {
-        /*Don't use instanceof this https://stackoverflow.com/a/53204052/9474643*/
-        this.promise = fn.promise
-      } else {
-        //immediatly resolve it
-        this.promise = new Promise(resolve => resolve(fn))
-      }
 
+    return eldeeb.run('when', () => {
+      let promise; console.log('type: ',eldeeb.objectType(fn))
+      if (eldeeb.objectType(fn) == 'promise',fn) {
+        promise = fn
+      } /*else if (fn instanceof this.constructor) {
+           //Don't use 'instanceof this' https://stackoverflow.com/a/53204052/9474643
+           //error: using this before super()
+            promise=fn.promise
+         }*/ else {
+        if (typeof fn != 'function') fn = r => r()
+        //  try {resolve(fn(resolve, reject))} catch (e) {reject(e)} //wrong: this causes resolving the promise immediatly, called to resolve or reject it
+        promise = super(fn)
+      }
+      this.promise = promise
       if (done || failed) return this.then(done, failed, stop)
       return this //don't return promise to enable chaining for other (non-promise) functions such as done() and to customise then
     })
+  }
+  when(fn, done, failed) {
+    return new promise(fn, done, failed)
+    /*
+    now wait() creats a new instance of this class, before it was change this.promise value witch make problems:
+    ex: this.all(this.wait(1),this.wait(2)) => both share the same this.promise value whitch store only the latest value
+    fot(..){if(p[i] instanceof this.constractor)p[i]=p[i].promise} -> give the same promise to all promises whitch is wrong
+    this.all(p1,p2,p3).done(..) -> .all() returns this, and the next done() works with this.promise i.e the last promise value whitch is wrong because it dosen't match the array of promises in .all(), if .all() set this.promise=[promises] how done() will use this array?
+    */
   }
 
   wait(seconds, done, failed, stop) {
@@ -103,13 +97,22 @@ module.exports = class promise extends Promise {
   }
 
   then(done, fail, stop) {
-    //console.log('this.promise: ', this.promise)
+    console.log('this.promise: ', this.promise)
     //nx: if(stop)exit the chain i.e don't run the next functions then(),done(),fail()
     // promise.then()  return this ;use the original promise don't create a new one and don't pass the promise to then()
 
     //nx: if the promise not settled call this.resolve()
-    //nx: check if this.promise is array,(returned from this.all()), in this case it must pass array of values
-    this.promise.then(done, fail)
+    /* nx:
+    if (
+      eldeeb.objectType(fn) == 'object' &&
+      fn.then &&
+      typeof obj.then == 'function'
+    ) {
+      //thenable object
+
+    }
+    */
+  //  this.promise.then(done, fail)
     if (stop) return this.stop()
     return this
   }
@@ -189,10 +192,10 @@ module.exports = class promise extends Promise {
   }
   promises(promises) {
     if (!eldeeb.isArray(promises)) return //nx: or any iterable ->see eldeeb.isArray()
-    /*for (let i = 0; i < promises.length; i++) {
-      if (promises[i] instanceof this.constructor) promises[i] = this.promise // promises[i].promise
-      //wrong: this passes a different promise, use it just after creating/modifing the promise ex: promises=[p.wait(1).promise,p.wait(2).promise]
-    }*/
+    for (let i = 0; i < promises.length; i++) {
+      if (promises[i] instanceof this.constructor)
+        promises[i] = promises[i].promise
+    }
     promises = this.promises(promises)
     return promises
   }

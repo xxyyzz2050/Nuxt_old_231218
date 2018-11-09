@@ -1,12 +1,13 @@
 eldeeb = require('../lib/')
 
-console.log('null: ', eldeeb.objectType(null))
-console.log('string: ', eldeeb.objectType('aa'))
-console.log('number: ', eldeeb.objectType(123))
-console.log('number: ', eldeeb.objectType(123.4))
-console.log('function: ', eldeeb.objectType(() => {}))
-console.log('function: ', eldeeb.objectType(function() {}))
-console.log('Array: ', eldeeb.objectType([1, 2, 3]))
-console.log('undefined: ', eldeeb.objectType(undefined))
-console.log('object: ', eldeeb.objectType({ x: 1 }))
-//console.log('iterator: ', eldeeb.objectType(null))
+p1=eldeeb.promise()
+p2=eldeeb.promise(p1)
+p3=eldeeb.promise(r=>r())
+
+
+console.log("p1",p1)
+console.log("p2",p2)
+console.log("p3",p3)
+
+
+p1.wait(2).then(x=>console.log(x.seconds))//.wait(1).done(x=>console.log(x.seconds))
