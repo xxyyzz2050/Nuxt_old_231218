@@ -100,7 +100,7 @@ module.exports = class promise extends Promise {
       if (typeof done != 'function') done = () => done //or done=()=>Promise.resolve(done) ; we return the value (or resolve it) to pass it to the next then() as a parameter
       if (typeof fail != 'function') fail = () => fail
       //return this.when(done, fail, false, true)
-      return super.then(done, fail) //don't return 'this' because we need to pass the new promise to the next function
+      return super.then(done, fail) //don't return 'this' because we need to pass the new promise to the next fu
     }
     return this
   }
