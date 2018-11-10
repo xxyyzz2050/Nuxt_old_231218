@@ -33,9 +33,13 @@ module.exports = class promise extends Promise {
     //wait until fn finish excuting, fn() has to settle (resolve or reject) the promise
     //stop is used in case of a new instance is created from anoter context ex: this.wait(1) will create another instance and may like to stop the chain after resolving it
     //if fn is array of functions-> apply this.all() or: {all:[fn1,..]} because it can be any other array
+
     return eldeeb.run('constructor', () => {
       if (typeof fn != 'function') {
-        if (eldeeb.objectType(fn) == 'array') fn = r => Promise.all(fn)
+        if (eldeeb.objectType(fn) == 'array') {
+          let tmp = fn //don't use: fn=r=>Promise.all(fn)
+          fn = r => Promise.all(tmp)
+        }
         //cannot use this.all() before super()
         else fn = r => r(fn)
       }
@@ -150,9 +154,14 @@ module.exports = class promise extends Promise {
     return this
   }
 
-  complete(fn) {
+  complete(fn, done, fail) {
     return this.then(fn, fn, typeof stop == 'undefined' ? true : false)
     //=finally() but default value of stop=true
+  }
+
+  finally(fn, done, fail) {
+    //temporary until finally oficially released, now promise.finally still in 'Draft' https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
+    return this.then(fn, fn).then(done, fail)
   }
 
   limit(seconds, ...fn) {
@@ -173,17 +182,10 @@ module.exports = class promise extends Promise {
     })
   }
 
-  finally(fn, done, fail) {
-    //temporary until finally oficially released, now promise.finally still in 'Draft' https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
-    return this.then(fn, fn).then(done, fail)
-  }
-
   //###### static methods: race,all,reject,resolve; use Promice.race() not this.promise.race
   all(promises, done, fail) {
     if (!eldeeb.isArray(promises)) return this //nx: or any iterable ->see eldeeb.isArray()
-    let promise = this.then(() => Promise.all(promises))
-    if (done || fail) promise = promise.then(done, fail)
-    return promise
+    return this.then(() => Promise.all(promises)).then(done, fail)
     //done() accept array of arguments, one for each promise
     /*
       nx:
@@ -196,9 +198,7 @@ module.exports = class promise extends Promise {
   race(promises, done, fail) {
     //typically same as .all()
     if (!eldeeb.isArray(promises)) return this
-    let promise = this.then(() => Promise.race(promises))
-    if (done || fail) promise = promise.then(done, fail)
-    return promise
+    return this.then(() => Promise.race(promises)).then(done, fail)
   }
 
   resolve(value, seconds) {
