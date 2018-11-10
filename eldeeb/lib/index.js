@@ -7,8 +7,6 @@ module.exports = {
     mark: '' //mark prefix
   },
   run: function(mark, promise, fn) {
-    return promise() //true
-    //nx:use this.promise()
     //always use arrow function to keep "this" referce to the original function context (not "run()" context)
     //nx: mark="eldeeb:"+this.run.caller (not allowed in strict mode), https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments/callee
     /*
@@ -23,43 +21,37 @@ module.exports = {
     if (typeof promise == 'function') {
       fn = promise
       promise = false
+    } else if (typeof mark == 'function') {
+      fn = mark
+      mark = ''
+      //  promise=false
     }
 
     if (this.op.debug) debugger
     if (typeof fn != 'function') {
-      if (typeof mark != 'function') {
-        if (this.op.log) console.warn('eldeeb run: not a function ', mark, fn)
-        return
-      }
-      tmp = fn
-      fn = mark
-      mark = tmp
+      if (this.op.log) console.warn('eldeeb run: not a function ', mark, fn)
+      return
     }
 
     if (typeof mark == 'string')
       mark = (this.op.mark != '' ? this.op.mark + '/' : '') + mark
     else if (mark instanceof Array)
       mark[0] = (this.op.mark != '' ? this.op.mark + '/' : '') + mark[0]
-    let p = new Promise((resolve, reject) => {
-      try {
-        var f = fn()
-        if (promise) {
-          if (mark && this.op.log)
-            console.log('success eldeeb[promise]: ', mark, f)
-          resolve(f)
-        } else {
-          if (mark && this.op.log) console.log('success: eldeeb:', mark, f)
-          return f
-        }
 
-        //if (mark && this.op.log) console.log('success: ', 'eldeeb:' + mark, f)
+    if (!promise) {
+      try {
+        f = fn()
+        if (mark && this.op.log) console.log('success: eldeeb:', mark, f)
+        return f
       } catch (e) {
         this.err(e, mark, fn)
-        if (promise) reject(e)
       }
-    })
-
-    if (promise) return p
+    } else {
+      promise = new Promise(fn) //fn must resolve the promise, fn(resolve,reject){if(finished)resolve(value)}
+      if (mark && this.op.log)
+        console.log('promise: eldeeb:', mark, promise /*, fn*/)
+      return promise
+    }
     //note that any console.log() inside fn() will appear BEFORE console.log("Success:**"), success must be at the end of try{}
     //don't concatenate mark (or other objects) to expand them to show their properties (concatenation will cast it to string)
   },

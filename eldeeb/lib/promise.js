@@ -26,19 +26,21 @@ promise.finally() is 'Draft' https://developer.mozilla.org/en-US/docs/Web/JavaSc
 */
 
 module.exports = class promise extends Promise {
-  constructor(fn, done, failed) {
+  constructor(fn, done, failed, stop) {
     //wait until fn finish excuting, fn() has to settle (resolve or reject) the promise
-
-    return eldeeb.run('when', () => {
-    if (typeof fn != 'function') fn = r => r()
-        let promise = super(fn)
-        this.promise = promise
+    //stop is used in case of a new instance is created from anoter context ex: this.wait(1) will create another instance and may like to stop the chain after resolving it
+    return eldeeb.run('constructor', () => {
+      if (typeof fn != 'function') fn = r => r(fn)
+      super(fn) //===this
+      this.stop = false
       if (done || failed) return this.then(done, failed, stop)
+
       return this //don't return promise to enable chaining for other (non-promise) functions such as done() and to customise then
     })
   }
-  when(fn, done, failed) {
-    return new promise(fn, done, failed)
+  when(fn, done, failed, stop) {
+    return new promise(fn, done, failed, stop)
+
     /*
     now wait() creats a new instance of this class, before it was change this.promise value witch make problems:
     ex: this.all(this.wait(1),this.wait(2)) => both share the same this.promise value whitch store only the latest value
@@ -52,31 +54,35 @@ module.exports = class promise extends Promise {
     //to canxel it: clearTimeout(timeout)
     if (typeof seconds == 'function') seconds = seconds()
     else if (typeof seconds != 'number') seconds = 0
-    //nx: check if seconds is a number
-    return this.when(
-      /*resolve=>{
-        let timeout =setTimeout(resolve, seconds * 1000)
-        timeout.seconds = seconds
-        return timeout //wrong, this will return before setTimeout finish
+    return eldeeb.run(['wait', seconds], () => {
+      return this.when(
+        resolve => {
+          this.clearTimeout = resolve //to stop it from outside  or this.clearTimeout(timeout)
+          let timeout = setTimeout(function() {
+            timeout.seconds = seconds //=(timeout._idleTimeout)/1000
+            resolve(timeout) //returning "timeout" will immediatley call the next .then(), and using resolve(timeout) will orevent the next .then() from using it untill it finished
+          }, seconds * 1000)
+        },
+        done,
+        failed,
+        stop
+      )
+    })
+
+    /*resolve=>{
+      let timeout =setTimeout(resolve, seconds * 1000)
+      timeout.seconds = seconds
+      return timeout //wrong, this will return before setTimeout finish
 
 
-        resolve=>setTimeout(resolve,seconds*1000,seconds) //it works, but how to pass timeout instead of seconds
-        resolved=>{var timeout=setTimeout(...,timeout)} also failed
-      }*/
+      resolve=>setTimeout(resolve,seconds*1000,seconds) //it works, but how to pass timeout instead of seconds
+      resolved=>{var timeout=setTimeout(...,timeout)} also failed
+    }*/
 
-      resolve => {
-        let timeout = setTimeout(function() {
-          timeout.seconds = seconds //=(timeout._idleTimeout)/1000
-          resolve(timeout) //returns "timeout" will immediatley call the next .then(), and resolve(timeout) will orevent the next .then() from using it untill it finished
-        }, seconds * 1000)
-      }, //nx: pass timeout insteadof seconds or [{timeout object},seconds] to control the timeout (ex: clearTimeout), note that Promise.resolve() occepts only one parameter ,so the second parameter (4th argument) of setTimeout() will be ignored
-      done,
-      failed,
-      stop
-      //nx: this function immediatly returns seconds then wait until setTimeout finished
-      //or: ()=>{setTimeout(fn(){}) return seconds}
-      //or: return timeout id to control it (clearTimeOut(id))
-    )
+    //nx: pass timeout insteadof seconds or [{timeout object},seconds] to control the timeout (ex: clearTimeout), note that Promise.resolve() occepts only one parameter ,so the second parameter (4th argument) of setTimeout() will be ignored [Solved by defining timeout]
+    //nx: this function immediatly returns seconds then wait until setTimeout finished
+    //or: ()=>{setTimeout(fn(){}) return seconds}
+    //or: return timeout id to control it (clearTimeOut(id))
 
     /*
    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
@@ -87,28 +93,20 @@ module.exports = class promise extends Promise {
   }
 
   then(done, fail, stop) {
-    console.log('this.promise: ', this.promise)
-    //nx: if(stop)exit the chain i.e don't run the next functions then(),done(),fail()
-    // promise.then()  return this ;use the original promise don't create a new one and don't pass the promise to then()
-
     //nx: if the promise not settled call this.resolve()
-    /* nx:
-    if (
-      eldeeb.objectType(fn) == 'object' &&
-      fn.then &&
-      typeof obj.then == 'function'
-    ) {
-      //thenable object
-
+    // nx: if (eldeeb.objectType(fn) == 'object' &&fn.then &&typeof obj.then == 'function') {//thenable object}
+    if (!this.stop) {
+      if (stop) this.stop() //for the next .then()
+      if (typeof done != 'function') done = () => done //or done=()=>Promise.resolve(done) ; we return the value (or resolve it) to pass it to the next then() as a parameter
+      if (typeof fail != 'function') fail = () => fail
+      //return this.when(done, fail, false, true)
+      return super.then(done, fail) //don't return 'this' because we need to pass the new promise to the next function
     }
-    */
-  //  this.promise.then(done, fail)
-    if (stop) return this.stop()
     return this
   }
 
   done(fn, stop) {
-    return this.then(fn, null, stop)
+    return this.then(fn, null, typeof stop == 'undefined' ? true : false)
   }
 
   fail(fn, stop) {
@@ -127,11 +125,13 @@ module.exports = class promise extends Promise {
   }*/
 
   stop() {
-    //exit the current chain, i.e don't pass the promise to the next functions
+    //exit the current chain, i.e don't run the next functions; to resume the chain: set this.stop=false or create a new promise instance, but dont make a new chain ex: p.stop().then(..)  p.then(..)
+    this.stop = true
     return this
   }
 
-  complete() {
+  complete(fn) {
+    return this.then(fn, fn, typeof stop == 'undefined' ? true : false)
     //=finally() but default value of stop=true
   }
 

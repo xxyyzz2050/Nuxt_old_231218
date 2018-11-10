@@ -1,6 +1,11 @@
 var eldeeb = require('../lib/'),
   promise = eldeeb.promise()
 
+  eldeeb.op.log=false
+
+promise.wait(1).then(x=>console.log("wait-1: ",x.seconds)).wait(1.5).then(x=>console.log("wait-1: ",x.seconds))
+
+
 promise
   .then(() => console.log('start...'))
   .wait(2, timeout => console.log('wait(): ', timeout.seconds)) //excuted after .when() ??
@@ -19,13 +24,14 @@ promise
   .done(x => console.log('done: ', x))
   .when(
     function() {
-      return 'using return' //not work??
+      return 'using return' //not work -> promise must be resolved or rejected
     },
     x => console.log(x),
     err => console.error(err)
   )
   .done(x => console.log(x))
   .catch(e => console.error(e))
+
 /*
 //######## promise.all()
 //inline .then() & using .promise ->correct

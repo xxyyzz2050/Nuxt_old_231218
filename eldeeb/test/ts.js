@@ -1,13 +1,16 @@
 eldeeb = require('../lib/')
+promise = eldeeb.promise()
+eldeeb.op.log = true
 
-p1=eldeeb.promise()
-p2=eldeeb.promise(p1)
-p3=eldeeb.promise(r=>r())
+/*promise.then(1).then(x => {
+  console.log('x: ', x) //wrong:
+})*/
 
+/*done = () => 2
+p = new Promise(r => r(1))
+p.then(done).then(x => console.log(':', x))
+*/
 
-console.log("p1",p1)
-console.log("p2",p2)
-console.log("p3",p3)
+//promise.then(x => 1).then(x => console.log('x:', x))
 
-
-p1.wait(2).then(x=>console.log(x.seconds))//.wait(1).done(x=>console.log(x.seconds))
+promise.then(1).then(x => console.log('x:', x))
