@@ -71,11 +71,10 @@ module.exports = {
     //console.error("Error @eldeeb: " + at + "(" + e.name + "): " + e.message + " @" + (e.lineNumber || "") + ":" + (e.columnNumber || "") + " in: " + (e.fileName || "--") + " \n->", (extra ? extra : "")) //+"; by:"+(e.stack||e.description||"")
   },
   isArray: function(obj) {
-    return
-    this.objectType(obj) == 'null' ||
-      'undefined' ||
-      'object' ||
+    return (
+      this.objectType(obj) == ('null' || 'undefined' || 'object') ||
       typeof obj[Symbol.iterator] == 'function'
+    )
   },
   inArray: function(str, arr, keepCase) {
     return this.run(['eldeeb/inArray', str, arr, keepCase], () => {
@@ -171,9 +170,12 @@ module.exports = {
     else return db
   },
 
-  promise() {
+  promise(fn, done, failed) {
     //eldeeb = this
     promise = require('./promise.js')
-    return new promise()
+    return new promise(fn, done, failed)
+  },
+  when(fn, done, failed) {
+    return this.promise(fn, done, failed)
   }
 }

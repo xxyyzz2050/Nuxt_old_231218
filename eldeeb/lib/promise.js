@@ -22,15 +22,23 @@ promise.finally() is 'Draft' https://developer.mozilla.org/en-US/docs/Web/JavaSc
          .done(x=>"the previous fail() will catche the exception and pass a new resolved promise, let's try another resource")
          .fail(err=>"in case of failure don't continue, so we will stop",true)
 
-         Don't use custom methode by this class after Native Promise methods until it have been overridden, because they return promise (not "this")
+         - Don't use custom methode by this class after Native Promise methods until it have been overridden, because they return promise (not "this")
+         - important: all functions must apply .then() to wait the previous function in the chain ex: promise().wait(3).done(x=>log(x)).wait(1).done(..) wait(1) will not wait untill wait(3) finish untill it apply .then() before returning a value
+         - nx: control timeout that returned from wait(), wait() must return a promise (not timeout) and resolve(timeout) cause the next .then() wait untill wait() finish then receive timeout
+
 */
 
 module.exports = class promise extends Promise {
   constructor(fn, done, failed, stop) {
     //wait until fn finish excuting, fn() has to settle (resolve or reject) the promise
     //stop is used in case of a new instance is created from anoter context ex: this.wait(1) will create another instance and may like to stop the chain after resolving it
+    //if fn is array of functions-> apply this.all() or: {all:[fn1,..]} because it can be any other array
     return eldeeb.run('constructor', () => {
-      if (typeof fn != 'function') fn = r => r(fn)
+      if (typeof fn != 'function') {
+        if (eldeeb.objectType(fn) == 'array') fn = r => Promise.all(fn)
+        //cannot use this.all() before super()
+        else fn = r => r(fn)
+      }
       super(fn) //===this
       this.stop = false
       if (done || failed) return this.then(done, failed, stop)
@@ -55,17 +63,20 @@ module.exports = class promise extends Promise {
     if (typeof seconds == 'function') seconds = seconds()
     else if (typeof seconds != 'number') seconds = 0
     return eldeeb.run(['wait', seconds], () => {
-      return this.when(
-        resolve => {
-          this.clearTimeout = resolve //to stop it from outside  or this.clearTimeout(timeout)
-          let timeout = setTimeout(function() {
-            timeout.seconds = seconds //=(timeout._idleTimeout)/1000
-            resolve(timeout) //returning "timeout" will immediatley call the next .then(), and using resolve(timeout) will orevent the next .then() from using it untill it finished
-          }, seconds * 1000)
-        },
-        done,
-        failed,
-        stop
+      //https://stackoverflow.com/questions/53237418/javascript-promise-a-problem-with-settimeout-inside-a-promise-race
+      return this.then(() =>
+        this.when(
+          resolve => {
+            this.clearTimeout = resolve //to stop it from outside  or this.clearTimeout(timeout)
+            let timeout = setTimeout(function() {
+              timeout.seconds = seconds //=(timeout._idleTimeout)/1000
+              resolve(timeout) //returning "timeout" will immediatley call the next .then(), and using resolve(timeout) will orevent the next .then() from using it untill it finished
+            }, seconds * 1000)
+          },
+          done,
+          failed,
+          stop
+        )
       )
     })
 
@@ -96,9 +107,17 @@ module.exports = class promise extends Promise {
     //nx: if the promise not settled call this.resolve()
     // nx: if (eldeeb.objectType(fn) == 'object' &&fn.then &&typeof obj.then == 'function') {//thenable object}
     if (!this.stop) {
-      if (stop) this.stop() //for the next .then()
-      if (typeof done != 'function') done = () => done //or done=()=>Promise.resolve(done) ; we return the value (or resolve it) to pass it to the next then() as a parameter
-      if (typeof fail != 'function') fail = () => fail
+      if (stop) this.stopx() //for the next .then();
+      let tmp
+      if (typeof done != 'function') {
+        tmp = done
+        done = () => tmp //or done=()=>Promise.resolve(done) ; we return the value (or resolve it) to pass it to the next then() as a parameter
+        // don't use the same name i.e done=()=>done this copy 'done' by reference, so it will always pass a function (()=>x) to the next .then()
+      }
+      if (typeof fail != 'function') {
+        tmp = fail
+        fail = () => tmp
+      }
       //return this.when(done, fail, false, true)
       return super.then(done, fail) //don't return 'this' because we need to pass the new promise to the next fu
     }
@@ -124,7 +143,8 @@ module.exports = class promise extends Promise {
     return this.then(null, fn, stop)
   }*/
 
-  stop() {
+  stopx() {
+    //nx: change it's name to stop()
     //exit the current chain, i.e don't run the next functions; to resume the chain: set this.stop=false or create a new promise instance, but dont make a new chain ex: p.stop().then(..)  p.then(..)
     this.stop = true
     return this
@@ -159,35 +179,26 @@ module.exports = class promise extends Promise {
   }
 
   //###### static methods: race,all,reject,resolve; use Promice.race() not this.promise.race
-  race(promises, done, fail) {
-    promises = this.promises(promises)
-    if (promises) {
-      Promise.race(promises).then(done, fail)
-      this.promise = promises
-    }
-    return this
+  all(promises, done, fail) {
+    if (!eldeeb.isArray(promises)) return this //nx: or any iterable ->see eldeeb.isArray()
+    let promise = this.then(() => Promise.all(promises))
+    if (done || fail) promise = promise.then(done, fail)
+    return promise
+    //done() accept array of arguments, one for each promise
+    /*
+      nx:
+       - to wait for the previous function in the chain this function must be used inside .then() or return .then(promise)
+        - if (this) passed, convert it to a promise ex: this.wait(1).promise ->super() must holde the current promise
+        - allow separated .then() with all ex: .all([promises],done,fail) working, but .all([promises]).done(value) only pass one value (not array)
+      */
   }
 
-  all(promises, done, fail) {
-    if (promises) {
-      Promise.all(promises).then(done, fail)
-      this.promise = promises //to pass the correct promises to the next then() in the chain
-    } //done() accept array of arguments, one for each promise
-    return this
-    /*
-    nx:
-      - if (this) passed, convert it to a promise ex: this.wait(1).promise ->super() must holde the current promise
-      - allow separated .then() with all ex: .all([promises],done,fail) working, but .all([promises]).done(value) only pass one value (not array)
-    */
-  }
-  promises(promises) {
-    if (!eldeeb.isArray(promises)) return //nx: or any iterable ->see eldeeb.isArray()
-    for (let i = 0; i < promises.length; i++) {
-      if (promises[i] instanceof this.constructor)
-        promises[i] = promises[i].promise
-    }
-    promises = this.promises(promises)
-    return promises
+  race(promises, done, fail) {
+    //typically same as .all()
+    if (!eldeeb.isArray(promises)) return this
+    let promise = this.then(() => Promise.race(promises))
+    if (done || fail) promise = promise.then(done, fail)
+    return promise
   }
 
   resolve(value, seconds) {
