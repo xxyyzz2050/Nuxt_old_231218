@@ -38,7 +38,7 @@ module.exports = class promise extends Promise {
       if (typeof fn != 'function') {
         if (eldeeb.objectType(fn) == 'array') {
           let tmp = fn //don't use: fn=r=>Promise.all(fn)
-          fn = r => Promise.all(tmp)
+          return Promise.all(tmp).then(done, failed)
         }
         //cannot use this.all() before super()
         else fn = r => r(fn)

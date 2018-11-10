@@ -36,10 +36,19 @@ promise
 //inline .then()
 promise.all(
   [promise.wait(1), promise.wait(2), true],
-  values => console.log('all/inline: ', [values[0].seconds,values[1].seconds]), 
+  values => console.log('all/inline: ', [values[0].seconds, values[1].seconds]),
   e => console.log('all/fail: ', e)
 )
 //separated .then()
 promise
   .all([promise.wait(1), promise.wait(2), true])
-  .then(values => console.log('all/separated: ', [values[0].seconds,values[1].seconds])) //correct
+  .then(values =>
+    console.log('all/separated: ', [values[0].seconds, values[1].seconds])
+  ) //correct
+
+eldeeb
+  .promise([promise.wait(1), promise.wait(2), 1], v => {
+    console.log('v1', v)
+    return 'OK'
+  }) //in;ine .then() dosent work
+  .then(v => console.log('v2', v))
