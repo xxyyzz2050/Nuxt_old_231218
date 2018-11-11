@@ -158,16 +158,17 @@ module.exports = {
   },
 
   //Loading modules
-  db(type, options, callback) {
+  db(type, options, done, fail, events) {
     if (typeof type == 'undefined' || type == 'mongo' || type == 'mongoose')
       type = 'mongoDB'
     else if (this.objectType(type) == 'object') {
-      ;(callback = options), (options = type), (type = 'mongoDB')
+      fail = done
+      done = options
+      options = type
+      type = 'mongoDB'
     }
 
-    var db = require(`./db-${type}.js`) //nx: if file_exists
-    if (options) return new db(options, callback)
-    else return db
+    return new (require(`./db-${type}.js`))(options, done, fail, events) //nx: if file_exists
   },
 
   promise(fn, done, failed) {
