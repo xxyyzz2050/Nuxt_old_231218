@@ -43,7 +43,9 @@ module.exports = function(err, throwError, jsError) {
     this.err.link = (!eldeeb.isEmpty(err.link)
       ? err.link
       : 'https://eldeeb.com/error/{num}-{msg}'
-    ).replace(/{(.*?)}/gi, (a, b) => this.err[b]) //or: ${..}; this.err[$1] is invalid
+    )
+      .replace(/{(.*?)}/gi, (a, b) => this.err[b])
+      .replace(' ', '-') //or: ${..}; this.err[$1] is invalid
 
     if (throwError) {
       if (jsError) throw new Error(this.err) //or Error(this.err.msg) because it accepts 'string' (not object)
