@@ -1,171 +1,128 @@
 const mongoose = require('mongoose'),
   eldeeb = require('./index.js')
-eldeeb.op.mark = 'mongoDB'
+eldeeb.op.mark = 'db/mongoDB'
 
 module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   //mongoose/lib/index.js exports new mongoose(), not the class itself; also mongoose is a Function
-  constructor(options, callback) {
+  constructor(options, done,fail) {
     //nx: return Promise
     //note: if this class didn't extends mongoose, 1- don't use super() 2- use mongoose instead of this to access mongoose properties
     //when extends
     //super(options)
 
-    const autoConnect =
-      options === null || typeof options == 'undefined' ? false : true
+return eldeeb.run(['()', options /*,callback*/], () => {
+     this.promise=eldeeb.promise((resolve,reject)=>{
+       let err=eldeeb.error(100)
 
-    if (typeof options == 'function') {
-      callback = options
-      options = {}
+    if(typeof options=="function")options=options()
+    if (eldeeb.isEmpty(options))reject(err)
+    else if(typeof(options)=="string"){
+      if(options != '')options={uri:options}
+      else reject(err)
+    }
+    else if (options instanceof Array) {
+        //don't use typeof options=="Array"
+        options = {
+          user: options[0],
+          pass: options[1],
+          host: options[2],
+          db: options[3]
+        }
+      }
+
+     if(eldeeb.objectType(options)!="object")reject(err)
+
+     if(typeof options.uri=="function")options.uri=(options.uri)(options)
+
+    let uri=""
+    if(("uri" in options)&&!eldeeb.isEmpty(options.uri)){
+      uri = (options.uri.substr(0, 7) != 'mongodb'?'mongodb' + (options.srv ? '+srv' : '') + '://':'') + options.uri
+    }else{
+      if(!("user" in options)||!("pass" in options)||eldeeb.isEmpty(options.use)||eldeeb.isEmpty(options.pass))reject(err)
+      if (!options['host']) options['host'] = 'localhost' //nx: default port
+      // if(!("db" in options))options["db"]="database"
+      uri = `mongodb${options.srv ? '+srv' : ''}://${encodeURIComponent(options['user'])}:${encodeURIComponent(options['pass'])}@${options['host'] instanceof Array? options['host'].join(','): options['host']}/${options['db']}}` //?${options["options"]
     }
 
-    if (options.pk) {
-      this.pk == options.pk
-      delete options.pk
-    } else this.pk == '__id'
+  delete options['uri']
+  delete options['user']
+  delete options['pass']
+  delete options['host']
+  delete options['db']
+  delete options['options'] //deprecated: options for native dbMongo (appended to uri ->uri?options)
+  //options may has another properties for Mongoose or mongoDB, so don't set options to null
 
-    if (!('models' in options)) options['models'] = '..'
-    this.connection = null
-    this.options = options || {}
+    }
 
-    this.mongoose = mongoose //nx: just to use outside this class ex: mongo.mongoose.set(..), we don't need this var for our class
+if (options.debug) {
+  mongoose.set('debug', true)
+  eldeeb.op.log = true
+} else {
+  mongoose.set('debug', false)
+  eldeeb.op.log = false //default is true
+}
+delete options['debug']
+if (eldeeb.op.log) console.log('===uri===', uri, options)
 
-    mongoose.set('autoIndex', false)
-    mongoose.set('useNewUrlParser', true) //also provided inside connect()
-    mongoose.set('useFindAndModify', false) //https://mongoosejs.com/docs/deprecations.html
-    mongoose.set('useCreateIndex', true)
-    if (autoConnect)
-      this.connect(
-        options,
-        callback
-      ) //auto establish a connection; set to false when you like to set some properties to mongoose interface before establishing a connection
+if (options.pk) {
+  this.pk == options.pk
+  delete options.pk
+} else this.pk == '__id'
 
-    return this
+if (!('useNewUrlParser' in options)) options['useNewUrlParser'] = true
+if (!('useCreateIndex' in options)) options['useCreateIndex'] = true
+this.models = './models' //default path for model schema objects
+this.mongoose = mongoose //nx: just to use outside this class ex: mongo.mongoose.set(..), we don't need this var for our class
+
+mongoose.set('autoIndex', false)
+mongoose.set('useNewUrlParser', true) //also provided inside connect()
+mongoose.set('useFindAndModify', false) //https://mongoosejs.com/docs/deprecations.html
+mongoose.set('useCreateIndex', true)
+
+this.connection=mongoose.createConnection(uri, options, function(error) {
+  //mongoose.connect() is the default connection using .createConnection, here every instance has only one connection
+  if (error){ //the error occures on mongoose, not mongoDB, success here doesn't mean we have a success connection to the real database
+    err['extra']=error;
+    reject(err)
   }
 
-  connect(options, callback) {
-    //nx: return promise
-    //nx: connect(fn(){..}), connect() => use default connection
+  // https://nodejs.org/api/events.html#events_emitter_once_eventname_listener
+  //nx: needs review
+  //nx: return a promise.resolve(this,status) ,on('error',reject(e))
+   this.once(
+     [
+       'connected',
+       'disconnected',
+       'reconnected',
+       'connecting',
+       'reconnecting',
+       'disconnecting',
+       'index',
+       'close',
+       'error',
+       'open'
+     ],
+     function(event) {
+       resolve(event) //nx: reject on error
+     }
+   )
 
-    if (typeof options == 'undefined') return
-    if (typeof options == 'function') {
-      callback = options
-      options = {}
-    }
 
-    options = eldeeb.merge(this.options, options) || options
 
-    if (options.debug) {
-      mongoose.set('debug', true)
-      eldeeb.op.log = true //don't use $this.debug, to controll all logs via eldeeb
-    } else {
-      mongoose.set('debug', false)
-      eldeeb.op.log = false //default is true
-    }
-    delete options['debug']
+}) //.createConnection()
 
+},done,fail) //promise
+return this; //for chaining
+}
+}
+
+  connect(options, ,done,fail) {
+    //this function just creats a new instance of this class
     return eldeeb.run(['connect', options /*,callback*/], () => {
-      if (eldeeb.isEmpty(options)) {
-        if (!eldeeb.isEmpty(this.options)) options = this.options
-        else {
-          if (callback && typeof callback == 'function') callback('error') //nx: error details;
-          return null
-        }
-      }
+      return new db-mongoDB(options,done,fail)
 
-      if (!('useNewUrlParser' in options)) options['useNewUrlParser'] = true
-      if (!('useCreateIndex' in options)) options['useCreateIndex'] = true
-
-      let uri = ''
-      if (options.uri && !eldeeb.isEmpty(options.uri)) {
-        //don't use options[uri], if so, encodeURIComponent(user & pass)
-        uri = options['uri']
-      } else {
-        if (typeof options == 'string' && options != '') {
-          if (options.substr(0, 7) != 'mongodb')
-            options = 'mongodb' + (options.srv ? '+srv' : '') + '://' + options
-          uri = options
-          options = {}
-        } else {
-          if (options instanceof Array) {
-            //don't use typeof options=="Array"
-            options = {
-              user: options[0],
-              pass: options[1],
-              host: options[2],
-              db: options[3]
-            }
-          }
-
-          /* if(eldeeb.objectType(options["options"])=="object"){
-             options["options"]= Object.keys(options["options"]).map(key => key + '=' + options["options"][key]).join('&');
-           }*/
-          if (!options['user'] || !options['pass']) {
-            if (callback && typeof callback == 'function') callback('error') //nx: error details; or throw error
-            return null
-          }
-          if (!options['host']) options['host'] = 'localhost' //nx: default port
-          // if(!("db" in options))options["db"]="database" //nx: default port
-          uri = `mongodb${options.srv ? '+srv' : ''}://${encodeURIComponent(
-            options['user']
-          )}:${encodeURIComponent(options['pass'])}@${
-            options['host'] instanceof Array
-              ? options['host'].join(',')
-              : options['host']
-          }/${options['db']}}` //?${options["options"]
-        }
-      }
-      delete options['uri']
-      delete options['user']
-      delete options['pass']
-      delete options['host']
-      delete options['db']
-      delete options['options']
-      //options may has another properties for Mongoose or mongoDB, so don't set options to null
-      if (eldeeb.op.log) console.log('===uri===', uri, options)
-      const db = mongoose.createConnection(uri, options, function(error) {
-        if (error) {
-          if (callback) callback('mongooseError') //the error occures on mongoose, not mongoDB, success here doesn't mean we have a success connection to the real database
-          return //nx: throw an error
-        }
-      })
-      this.connection = db
-
-      //db=$this.connection; //returns the default connection by mongoose.connect(), not the current connection
-
-      // https://nodejs.org/api/events.html#events_emitter_once_eventname_listener
-      if (callback && typeof callback == 'function') {
-        //or: if(eldeeb.objectType(callback)=="function"); nx: how to get a reference to the current connection i.e: db
-
-        /*this.on('open', function() {
-          console.log('==open==')
-        })*/
-
-        this.once(
-          [
-            'connected',
-            'disconnected',
-            'reconnected',
-            'connecting',
-            'reconnecting',
-            'disconnecting',
-            'index',
-            'close',
-            'error',
-            'open'
-          ],
-          function(event) {
-            callback(event, db)
-          }
-        )
-        //or {error:fn(){..}, open:fn(){..}, connected:fn(){..}}
-      } else {
-        //nx: return a promise.resolve(this,status) ,on('error',reject(e))
-        //nx: regester events i.e: this.once('open',fn)
-      }
-
-      return this //for chaining
-    })
   }
+}
 
   on(event, callback, once) {
     var ev = this.connection.on
