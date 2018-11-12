@@ -1,5 +1,6 @@
 const mongoose = require('mongoose'),
   eldeeb = require('./index.js')
+
 eldeeb.op.mark = 'db/mongoDB'
 
 module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
@@ -14,7 +15,6 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
       this.promise = eldeeb.promise(
         (resolve, reject) => {
           let err = eldeeb.error(100),
-            uri = '',
             defaultOptions = {
               useNewUrlParser: true,
               useCreateIndex: true,
@@ -26,7 +26,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
 
           if (typeof options == 'function') options = options()
           if (eldeeb.isEmpty(options))
-            reject({ ...err, extra: ['options is empty', uri, options] })
+            reject({ ...err, extra: ['options is empty', this.uri, options] })
           else if (typeof options == 'string') options = { uri: options }
           else if (options instanceof Array) {
             //don't use typeof options=="Array"
@@ -48,7 +48,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
             options.uri = options.uri(options)
 
           if ('uri' in options && !eldeeb.isEmpty(options.uri)) {
-            uri =
+            this.uri =
               (options.uri.substr(0, 7) != 'mongodb'
                 ? 'mongodb' + (options.srv ? '+srv' : '') + '://'
                 : '') + options.uri
@@ -61,20 +61,22 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
             )
               reject({
                 ...err,
-                extra: ['no uri or user/pass', uri, options]
+                extra: ['no uri or user/pass', this.uri, options]
               })
             if (!options['host']) options['host'] = 'localhost' //nx: default port
             // if(!("db" in options))options["db"]="database"
-            uri = `mongodb${options.srv ? '+srv' : ''}://${encodeURIComponent(
-              options['user']
-            )}:${encodeURIComponent(options['pass'])}@${
+            this.uri = `mongodb${
+              options.srv ? '+srv' : ''
+            }://${encodeURIComponent(options['user'])}:${encodeURIComponent(
+              options['pass']
+            )}@${
               options['host'] instanceof Array
                 ? options['host'].join(',')
                 : options['host']
-            }/${options['db']}}` //?${options["options"]
+            }/${options['db']}` //?${options["options"]
           }
 
-          this.models = options.models ? options.models : '../../../models' //default path for model schema objects (node_modules/eldeeb/lib/this-file)
+          this.models = options.models ? options.models : '../../../models' //default path for model schema objects (node_modules/eldeeb/lib/this-file) (don't use '/models')
           if (options.debug) {
             mongoose.set('debug', true)
             eldeeb.op.log = true
@@ -91,7 +93,6 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           delete options['models']
           delete options['debug']
           //options may has another properties for Mongoose or mongoDB, so don't set options to null
-          if (eldeeb.op.log) console.log('===uri===', uri, options)
 
           if (options.pk) {
             this.pk == options.pk
@@ -99,10 +100,11 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           } else this.pk == '__id'
 
           options = eldeeb.merge(defaultOptions, options)
-
-          this.connection = mongoose.createConnection(uri, options)
+          if (eldeeb.op.log)
+            console.log('connection details:', this.uri, options)
+          this.connection = mongoose.createConnection(this.uri, options)
           if (!this.connection)
-            reject({ ...err, extra: ['connection error', uri, options] })
+            reject({ ...err, extra: ['connection error', this.uri, options] })
           if (events) this.on('all', ev => events(ev)) //this will be run for all events, .then(..db.on('all')) will be run for all events AFTER 'open' because .then() only occurs after 'open' stage
           this.connection.then(
             () => resolve(this), //db is connected & open, using .on() will be run on other events
@@ -173,7 +175,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   once(event, callback) {
     return this.on(event, callback, true)
   }
-  _schema(obj, options) {
+  schema(obj, options) {
     //this.Schema != super.Schema without this function ; nx: not called by model() if it's name is "Schema"
     let $this = this
     return eldeeb.run(['schema', obj], () => {
@@ -184,18 +186,19 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   }
 
   model(coll, schema, options) {
+    //nx: field: anotherSchema ??
     if (!this.connection) return { model: null, schema: null }
     return eldeeb.run(['model', schema, options], () => {
       if (typeof schema == 'string')
         schema = require(`${schema}/${coll}.js`) || {}
       else if (schema == null || typeof schema == 'undefined') {
-        schema = require(`${this.options.models}/${coll}.js`) || {}
+        schema = require(`${this.models}/${coll}.js`) || {}
       }
 
       if (!(schema instanceof mongoose.Schema)) {
         options = options || {}
         if (!('collection' in options)) options['collection'] = coll
-        schema = this._schema(schema, options)
+        schema = this.schema(schema, options)
       }
 
       return { model: this.connection.model(coll, schema), schema: schema } //var {model,schema}=db.model(..); or {model:MyModel,schema:mySchema}=db.model(..) then: schema.set(..)
@@ -207,8 +210,8 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     if (eldeeb.objectType(key) == 'object') {
       for (var k in key) this.set(k, key[k])
     }
-
-    mongoose.set(key, value)
+    if (key == 'models') this.models = value
+    else mongoose.set(key, value)
   }
 
   //nx: move to mongoose-model() extends mongoose.model

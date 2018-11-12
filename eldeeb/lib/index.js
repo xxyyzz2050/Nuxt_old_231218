@@ -156,6 +156,21 @@ module.exports = {
       return target
     })
   },
+  json(data) {
+    if (typeof data == 'string') {
+      if (data.trim().charAt(0) == '{') return JSON.parse(data)
+      if (
+        data
+          .split('.')
+          .pop()
+          .toLowerCase() == 'json'
+      )
+        return require(data)
+      data = require('fs').readFileSync(data)
+      return JSON.parse(data)
+    } else return JSON.stringify(data)
+    //nx: if(string & !start)
+  },
 
   //Loading modules
   db(type, options, done, fail, events) {
