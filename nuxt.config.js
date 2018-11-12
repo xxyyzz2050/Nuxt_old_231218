@@ -13,9 +13,7 @@ module.exports = {
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { hid: 'description', name: 'description', content: pkg.description }
     ],
-    link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-    ]
+    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
   },
 
   /*
@@ -26,14 +24,12 @@ module.exports = {
   /*
   ** Global CSS
   */
-  css: [
-  ],
+  css: [],
 
   /*
   ** Plugins to load before mounting the App
   */
-  plugins: [
-  ],
+  plugins: [],
 
   /*
   ** Nuxt.js modules
@@ -58,7 +54,8 @@ module.exports = {
     /*
     ** You can extend webpack config here
     */
-    extend(config, ctx) {// return;//temporary disable list
+    extend(config, ctx) {
+      // return;//temporary disable list
       // Run ESLint on save
       if (ctx.isDev && ctx.isClient) {
         config.module.rules.push({
@@ -66,9 +63,9 @@ module.exports = {
           test: /\.(js|vue)$/,
           loader: 'eslint-loader',
           exclude: /(node_modules)/,
-          options : {
-               fix : true
-           }
+          options: {
+            fix: true
+          }
         })
       }
     }
