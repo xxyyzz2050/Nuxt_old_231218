@@ -4,6 +4,7 @@ var eldeeb = require('../lib/index.js')
 //to see logs put options.debug=true (don't use eldeeb.op.log=true)
 var options = require('./options').db,
   wrongOptions = {
+    //to test faild connection
     uri: 'mongodb://wrong-uri'
   }
 

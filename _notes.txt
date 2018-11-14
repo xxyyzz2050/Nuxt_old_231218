@@ -6,3 +6,6 @@ git filter-branch -f --index-filter 'git rm --cached -f -q --ignore-unmatch "$fi
 then force push:
 git push origin master --force
 ==
+*/eldeeb/* contain useful samples (ex: models,data,pages,...)
+==
+
