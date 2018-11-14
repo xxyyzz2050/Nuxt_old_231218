@@ -186,12 +186,12 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     */
     if (obj instanceof mongoose.Schema) return obj
     return eldeeb.run(['schema', obj], () => {
-      options = options || { autoIndex: false }
-      if (!('autoIndex' in options)) options['autoIndex'] = false
-      if (!('createdAt' in options))
-        options.createdAt = { type: Date, default: Date.now }
-      if (!('modifiedAt' in options))
-        options.modifiedAt = { type: Date, default: Date.now }
+      options = options || {}
+      let defaultOptions = {
+        createdAt: { type: Date, default: Date.now },
+        modifiedAt: { type: Date, default: Date.now }
+      }
+      options = eldeeb.merge(defaultOptions, options)
       return new mongoose.Schema(obj, options) //nx: $this.Schema != mongoose.Schema
     })
   }
@@ -214,6 +214,21 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
       return { model: this.connection.model(coll, schema), schema: schema } //var {model,schema}=db.model(..); or {model:MyModel,schema:mySchema}=db.model(..) then: schema.set(..)
       //don't use $super(model) because it referce to the default connection created by mongoose.connect(), not the current connection
     })
+  }
+
+  createIndex(model, indexes, options) {
+    //nx: if(model:object)model=this.model(model); nx: directly use mongoDB
+     //schema.index() only set index for autoIndex option
+     let defaultOptions={name:'index'} 
+     options=eldeeb.merge(defaultOptions,options)
+     return model.collection.createIndex(indexes, options) //promise
+      /*
+      eldeeb.promise(model.collection.createIndex(indexes, options),x=>x,err=>console.error(err))
+      return this
+      */
+  }
+  index(model, indexes, options) {
+    return this.createIndex(model, indexes, options)
   }
 
   set(key, value) {

@@ -1,4 +1,6 @@
-module.exports = {
-  user: 'ObjectId',
-  p: 'string'
-}
+module.exports = [
+  {
+    user: { type: 'ObjectId', ref: 'persons' },
+    p: 'string'
+  }
+]

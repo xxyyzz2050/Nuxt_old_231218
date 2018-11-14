@@ -1,5 +1,7 @@
-module.exports = {
-  emails: ['array'], //{entry,createdAT,confirmed:$time of last confirmed} first entry=primary
-  mobiles: ['array'],
-  accounts: ['ObjectId']
-}
+module.exports = [
+  {
+    emails: ['array'], //{entry,createdAT,confirmed:$time of last confirmed} first entry=primary
+    mobiles: ['array'],
+    accounts: [{ type: 'ObjectId', ref: 'accounts' }]
+  }
+]

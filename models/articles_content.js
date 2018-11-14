@@ -1,6 +1,8 @@
-module.exports = {
-  article: 'ObjectId',
-  original: 'string',
-  amp: 'string',
-  instanceArticle: 'string'
-}
+module.exports = [
+  {
+    article: { type: 'ObjectId', ref: 'articles' },
+    original: 'string',
+    amp: 'string',
+    instanceArticle: 'string'
+  }
+]

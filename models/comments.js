@@ -1,6 +1,9 @@
-module.exports = {
-  article: 'ObjectId',
-  person: 'ObjectId', //person (user or visitor)
-  text: 'string',
-  replyTo: 'objectId' //comment
-}
+module.exports = [
+  {
+    article: { type: 'ObjectId', ref: 'articles' },
+    person: { type: 'ObjectId', ref: 'persons' }, //user or visitor
+    text: 'string',
+    replyTo: { type: 'ObjectId', ref: 'comments' }
+  },
+  { article: 1 }
+]

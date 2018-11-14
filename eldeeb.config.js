@@ -1,3 +1,5 @@
+const mode = process.env.NODE_ENV || 'development' //from packages.json->scripts
+
 module.exports = {
   root: 'D:/Downloads/__projects/NodeJs/almogtama3.com/',
   db: {
@@ -6,7 +8,7 @@ module.exports = {
     pass: 'Xx159753@@',
     host:
       'cluster-test-shard-00-00-kuwit.gcp.mongodb.net:27017,cluster-test-shard-00-01-kuwit.gcp.mongodb.net:27017,cluster-test-shard-00-02-kuwit.gcp.mongodb.net:27017',
-    db: 'test',
+    db: mode=="development"?'test':'database',
     debug: false,
     ssl: true,
     replicaSet: 'Cluster-test-shard-0',
