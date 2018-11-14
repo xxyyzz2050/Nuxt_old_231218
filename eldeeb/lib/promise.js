@@ -129,7 +129,8 @@ module.exports = class promise extends Promise {
   }
 
   done(fn, stop) {
-    return this.then(fn, null, typeof stop == 'undefined' ? true : false)
+    //return this.then(fn, null, typeof stop == 'undefined' ? true : false) //default:stop=true
+    return this.then(fn, null, stop)
   }
 
   fail(fn, stop) {
@@ -138,7 +139,7 @@ module.exports = class promise extends Promise {
        2- catch(e)
        3- if(stop)stop the chain
     */
-    return this.then(null, fn, typeof stop === 'undefined' ? true : stop)
+    return this.then(null, fn, stop)
   }
 
   /*catch(fn, stop) {

@@ -41,7 +41,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           if (eldeeb.objectType(options) != 'object')
             reject({
               ...err,
-              extra: ['options is not an object', uri, options]
+              extra: ['options is not an object', this.uri, options]
             })
 
           if (typeof options.uri == 'function')
@@ -108,7 +108,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           if (events) this.on('all', ev => events(ev)) //this will be run for all events, .then(..db.on('all')) will be run for all events AFTER 'open' because .then() only occurs after 'open' stage
           this.connection.then(
             () => resolve(this), //db is connected & open, using .on() will be run on other events
-            error => reject({ ...err, extra: error })
+            error => reject({ ...err, extra: [error, this.uri, options] })
           ) //after mongoose.createConnection() response, resolve/reject this promise
           //the error occures on mongoose, not mongoDB, success here doesn't mean we have a success connection to the real database
           //mongoose.connect() is the default connection using .createConnection, here every instance has only one connection
@@ -120,7 +120,8 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
         done, //nx: pass this.connection to done()
         fail
       )
-      return this //for chaining
+
+      return this.promise
     }) //run
   }
 
@@ -177,10 +178,20 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   }
   schema(obj, options) {
     //this.Schema != super.Schema without this function ; nx: not called by model() if it's name is "Schema"
-    let $this = this
+    /*
+    nx: if(options.times){
+      createdAt: { type: Date, default: Date.now },
+      modifiedAt: { type: Date, default: Date.now },
+    }
+    */
+    if (obj instanceof mongoose.Schema) return obj
     return eldeeb.run(['schema', obj], () => {
       options = options || { autoIndex: false }
       if (!('autoIndex' in options)) options['autoIndex'] = false
+      if (!('createdAt' in options))
+        options.createdAt = { type: Date, default: Date.now }
+      if (!('modifiedAt' in options))
+        options.modifiedAt = { type: Date, default: Date.now }
       return new mongoose.Schema(obj, options) //nx: $this.Schema != mongoose.Schema
     })
   }
@@ -189,10 +200,9 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     //nx: field: anotherSchema ??
     if (!this.connection) return { model: null, schema: null }
     return eldeeb.run(['model', schema, options], () => {
-      if (typeof schema == 'string')
-        schema = require(`${schema}/${coll}.js`) || {}
+      if (typeof schema == 'string') schema = require(schema) || {}
       else if (schema == null || typeof schema == 'undefined') {
-        schema = require(`${this.models}/${coll}.js`) || {}
+        schema = require(`${this.models}/${coll}.json`) || {}
       }
 
       if (!(schema instanceof mongoose.Schema)) {

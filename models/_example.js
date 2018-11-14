@@ -1,6 +1,9 @@
-db = require('./models/index.js')
+db = require('./index.js')
 db.done(db => {
-  var { model: userModel, schema: userSchema } = db.model('users', './ts.json')
+  const { model: userModel, schema: userSchema } = db.model(
+    'users',
+    require('./users.js') //or .json
+  )
 
   userModel.findById('5be92fb487e94116ac606ffe').then(
     data => {

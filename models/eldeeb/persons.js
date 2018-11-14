@@ -6,7 +6,6 @@ module.exports = {
   birth: ['number'],
   languages: ['array'], //[ [lang,percentage%,native?],.. ]
   education: ['map'], //$stage: { department,start,end,grade,uni,colledge/school,topic 'for master & phD stages'}; starge=pre/secondary/colledge/master/phD/...
-  education_degree: 'string', //education->$stage
   job_history: ['map'], //{startTime,endTime:current,company:_id,position,location,salary:[ammount,currency],type[training,course,part time,online,..]},  //type:_id
   job_title: 'string',
   national_ids: ['map'], //{country:EG, id:xxx ,type:nation/residence},
