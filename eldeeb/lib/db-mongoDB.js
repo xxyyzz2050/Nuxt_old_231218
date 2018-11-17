@@ -1,5 +1,6 @@
 const mongoose = require('mongoose'),
-  eldeeb = require('./index.js')
+  eldeeb = require('./index.js'),
+  schema = require('./db-mongoDB-schema.js')
 
 eldeeb.op.mark = 'db/mongoDB'
 
@@ -76,7 +77,8 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
             }/${options['db']}` //?${options["options"]
           }
 
-          this.models = options.models ? options.models : '../../../models' //default path for model schema objects (node_modules/eldeeb/lib/this-file) (don't use '/models')
+          this.models = options.models ? options.models : '../../../models' //default path for model schema objects (related to THIS file)
+          this.ext = options.ext ? options.ext : 'json'
           if (options.debug) {
             mongoose.set('debug', true)
             eldeeb.op.log = true
@@ -91,6 +93,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           delete options['db']
           delete options['options'] //deprecated: options for native dbMongo (appended to uri ->uri?options)
           delete options['models']
+          delete options['ext']
           delete options['debug']
           //options may has another properties for Mongoose or mongoDB, so don't set options to null
 
@@ -177,23 +180,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     return this.on(event, callback, true)
   }
   schema(obj, options) {
-    //this.Schema != super.Schema without this function ; nx: not called by model() if it's name is "Schema"
-    /*
-    nx: if(options.times){
-      createdAt: { type: Date, default: Date.now },
-      modifiedAt: { type: Date, default: Date.now },
-    }
-    */
-    if (obj instanceof mongoose.Schema) return obj
-    return eldeeb.run(['schema', obj], () => {
-      options = options || {}
-      let defaultOptions = {
-        createdAt: { type: Date, default: Date.now },
-        modifiedAt: { type: Date, default: Date.now }
-      }
-      options = eldeeb.merge(defaultOptions, options)
-      return new mongoose.Schema(obj, options) //nx: $this.Schema != mongoose.Schema
-    })
+    return new schema(obj, options) //mongoose.Schema(...)
   }
 
   model(coll, schema, options) {
@@ -202,7 +189,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     return eldeeb.run(['model', schema, options], () => {
       if (typeof schema == 'string') schema = require(schema) || {}
       else if (schema == null || typeof schema == 'undefined') {
-        schema = require(`${this.models}/${coll}.json`) || {}
+        schema = require(`${this.models}/${coll}.${this.ext}`) || {}
       }
 
       if (!(schema instanceof mongoose.Schema)) {
@@ -218,11 +205,13 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
 
   createIndex(model, indexes, options) {
     //nx: if(model:object)model=this.model(model); nx: directly use mongoDB
-     //schema.index() only set index for autoIndex option
-     let defaultOptions={name:'index'} 
-     options=eldeeb.merge(defaultOptions,options)
-     return model.collection.createIndex(indexes, options) //promise
-      /*
+    //schema.index() only set index for autoIndex option
+    let defaultOptions = {
+      /*name:'index'*/
+    } //index name must be unique accross the table
+    options = eldeeb.merge(defaultOptions, options)
+    return model.collection.createIndex(indexes, options) //promise
+    /*
       eldeeb.promise(model.collection.createIndex(indexes, options),x=>x,err=>console.error(err))
       return this
       */
