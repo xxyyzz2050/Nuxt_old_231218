@@ -4,6 +4,7 @@ eldeeb.op.mark = 'db/mongoDB-schema'
 
 module.exports = class db_mongoDB_schema extends Schema {
   constructor(obj, options) {
+    //console.log('==obj==', obj)
     return eldeeb.run('()', () => {
       /*
       nx: if(options.times){
@@ -17,13 +18,15 @@ module.exports = class db_mongoDB_schema extends Schema {
 
       */
       obj = obj || {}
+      options = options || {}
+      //console.log('Options:', obj)
       if (eldeeb.objectType(obj) == 'object') {
         if ('fields' in options) obj = eldeeb.merge(obj, options['fields'])
         var adjust = options['adjust'] || {}
         delete options['fields']
         delete options['adjust']
-        options = options || {}
-        if (obj.times === true || obj.times === 1) {
+
+        if (/*!('times' in obj) || */ obj.times === true || obj.times === 1) {
           obj.createdAt = { type: Date, default: Date.now }
           obj.modifiedAt = { type: Date, default: Date.now }
           delete obj.times
@@ -38,6 +41,7 @@ module.exports = class db_mongoDB_schema extends Schema {
         var schema = super(obj, options)
       } else {
         if (!(obj instanceof Schema)) return //nx: throw error
+        suber()
         var schema = obj //nx: call super()?
       }
 

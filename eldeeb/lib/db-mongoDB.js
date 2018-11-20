@@ -1,6 +1,8 @@
 const mongoose = require('mongoose'),
   eldeeb = require('./index.js'),
-  schema = require('./db-mongoDB-schema.js')
+  schema = require('./db-mongoDB-schema.js'),
+  model = require('./db-mongoDB-Model.js'),
+  shortId = require('shortId').generate
 
 eldeeb.op.mark = 'db/mongoDB'
 
@@ -17,17 +19,24 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
         (resolve, reject) => {
           let err = eldeeb.error(100),
             defaultOptions = {
-              useNewUrlParser: true,
               useCreateIndex: true,
-              useNewUrlParser: true, //https://mongoosejs.com/docs/deprecations.html
+              //useNewUrlParser: true, //https://mongoosejs.com/docs/deprecations.html; now it gives "MongoError: authentication fail"
               useFindAndModify: false,
               bufferCommands: false, //https://mongoosejs.com/docs/connections.html
-              autoIndex: false
+              autoIndex: false,
+              retryWrites: true
             }
 
           if (typeof options == 'function') options = options()
           if (eldeeb.isEmpty(options))
-            reject({ ...err, extra: ['options is empty', this.uri, options] })
+            reject({
+              ...err,
+              details: {
+                uri: this.uri,
+                error: 'options is empty',
+                options: options
+              }
+            })
           else if (typeof options == 'string') options = { uri: options }
           else if (options instanceof Array) {
             //don't use typeof options=="Array"
@@ -42,7 +51,11 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           if (eldeeb.objectType(options) != 'object')
             reject({
               ...err,
-              extra: ['options is not an object', this.uri, options]
+              details: {
+                uri: this.uri,
+                error: 'options is not an object',
+                options: options
+              }
             })
 
           if (typeof options.uri == 'function')
@@ -62,15 +75,17 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
             )
               reject({
                 ...err,
-                extra: ['no uri or user/pass', this.uri, options]
+                details: {
+                  uri: this.uri,
+                  error: 'no uri or user/pass',
+                  options: options
+                }
               })
             if (!options['host']) options['host'] = 'localhost' //nx: default port
             // if(!("db" in options))options["db"]="database"
-            this.uri = `mongodb${
-              options.srv ? '+srv' : ''
-            }://${encodeURIComponent(options['user'])}:${encodeURIComponent(
-              options['pass']
-            )}@${
+            this.uri = `mongodb${options.srv ? '+srv' : ''}://${this.encode(
+              options['user']
+            )}:${this.encode(options['pass'])}@${
               options['host'] instanceof Array
                 ? options['host'].join(',')
                 : options['host']
@@ -95,6 +110,7 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           delete options['models']
           delete options['ext']
           delete options['debug']
+          delete options['srv']
           //options may has another properties for Mongoose or mongoDB, so don't set options to null
 
           if (options.pk) {
@@ -103,15 +119,26 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
           } else this.pk == '__id'
 
           options = eldeeb.merge(defaultOptions, options)
-          if (eldeeb.op.log)
-            console.log('connection details:', this.uri, options)
+          //if (eldeeb.op.log)  console.log('connection details:', this.uri, options)
+
           this.connection = mongoose.createConnection(this.uri, options)
           if (!this.connection)
-            reject({ ...err, extra: ['connection error', this.uri, options] })
+            reject({
+              ...err,
+              details: {
+                uri: this.uri,
+                error: 'connection error',
+                options: options
+              }
+            })
           if (events) this.on('all', ev => events(ev)) //this will be run for all events, .then(..db.on('all')) will be run for all events AFTER 'open' because .then() only occurs after 'open' stage
           this.connection.then(
             () => resolve(this), //db is connected & open, using .on() will be run on other events
-            error => reject({ ...err, extra: [error, this.uri, options] })
+            error =>
+              reject({
+                ...err,
+                details: { uri: this.uri, error: error, options: options }
+              })
           ) //after mongoose.createConnection() response, resolve/reject this promise
           //the error occures on mongoose, not mongoDB, success here doesn't mean we have a success connection to the real database
           //mongoose.connect() is the default connection using .createConnection, here every instance has only one connection
@@ -133,6 +160,14 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
     return eldeeb.run(['connect', options /*,callback*/], () => {
       return new db() - mongoDB(options, done, fail)
     })
+  }
+
+  encode(str) {
+    return encodeURIComponent(str).replace(/%/g, '%25')
+  }
+
+  uri(options) {
+    //return a well formed url string
   }
 
   on(event, callback, once) {
@@ -199,25 +234,26 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
       }
 
       return { model: this.connection.model(coll, schema), schema: schema } //var {model,schema}=db.model(..); or {model:MyModel,schema:mySchema}=db.model(..) then: schema.set(..)
+      //nx: override mongoose.model
       //don't use $super(model) because it referce to the default connection created by mongoose.connect(), not the current connection
     })
   }
 
-  createIndex(model, indexes, options) {
+  createIndex(model, index, options) {
     //nx: if(model:object)model=this.model(model); nx: directly use mongoDB
     //schema.index() only set index for autoIndex option
     let defaultOptions = {
       /*name:'index'*/
     } //index name must be unique accross the table
     options = eldeeb.merge(defaultOptions, options)
-    return model.collection.createIndex(indexes, options) //promise
+    return model.collection.createIndex(index, options) //promise
     /*
       eldeeb.promise(model.collection.createIndex(indexes, options),x=>x,err=>console.error(err))
       return this
       */
   }
-  index(model, indexes, options) {
-    return this.createIndex(model, indexes, options)
+  index(model, index, options) {
+    return this.createIndex(model, index, options)
   }
 
   set(key, value) {
@@ -234,4 +270,8 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   }
 
   get() {}
+
+  shortId() {
+    return shortId()
+  }
 }

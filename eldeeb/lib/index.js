@@ -194,7 +194,7 @@ module.exports = {
   when(fn, done, failed) {
     return this.promise(fn, done, failed)
   },
-  error(err, throwError) {
-    return new require('./error.js')(err, throwError)
+  error(err, throwError, jsError) {
+    return new require('./error.js')(err, throwError, jsError)
   }
 }

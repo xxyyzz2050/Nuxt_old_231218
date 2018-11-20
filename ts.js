@@ -1,13 +1,6 @@
-var Employee = {
-  firstname: 'Mohammed',
-  lastname: 'Haddad'
-}
+/* //test: extend mongoose.model
+const mongoose = require('mongoose'),
 
-console.log(Employee.firstname)
-// expected output: "Mohammed"
-
-delete Employee.firstname
-
-console.log(Employee.firstname)
-console.log('emp', Employee)
-// expected output: undefined
+var schema = db.schema({ test: 'string' })
+var model = new mongoose.model('testX', schema)
+console.log('model:', model)*/

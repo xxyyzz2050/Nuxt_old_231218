@@ -113,17 +113,28 @@ module.exports = class promise extends Promise {
     if (!this.stop) {
       if (stop) this.stopx() //for the next .then();
       let tmp
-      if (typeof done != 'function') {
+      if (
+        done !== null &&
+        typeof done != 'undefined' &&
+        typeof done != 'function'
+      ) {
+        //if done=null don't do anything, just pass the promise to the next .then(), else return the value passed to it
         tmp = done
         done = () => tmp //or done=()=>Promise.resolve(done) ; we return the value (or resolve it) to pass it to the next then() as a parameter
         // don't use the same name i.e done=()=>done this copy 'done' by reference, so it will always pass a function (()=>x) to the next .then()
       }
-      if (typeof fail != 'function') {
+      if (
+        fail !== null &&
+        typeof fail != 'undefined' &&
+        typeof fail != 'function'
+      ) {
         tmp = fail
         fail = () => tmp
       }
       //return this.when(done, fail, false, true)
-      return super.then(done, fail) //don't return 'this' because we need to pass the new promise to the next fu
+      //console.log('done:', done)
+      //console.log('fail:', fail)
+      return super.then(done, fail) //nx: how to return this as a new promise??
     }
     return this
   }

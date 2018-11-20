@@ -7,6 +7,7 @@ eldeeb.mark = 'error'
 
 */
 module.exports = function(err, throwError, jsError) {
+  //or: class error extends Error -> to add trace to error info (returns only Error object, not object)
   let errors = {
     0: {
       type: 'eldeeb/$className/fn',
@@ -26,7 +27,7 @@ module.exports = function(err, throwError, jsError) {
       type: err[1],
       msg: err[2],
       link: err[3],
-      extra: err[4]
+      details: err[4]
     }
   else if (typeof err == 'number') err = { num: err, type: 'eldeeb' }
 
@@ -39,7 +40,7 @@ module.exports = function(err, throwError, jsError) {
     this.err.num = err.num
     //override default err object
     if (!eldeeb.isEmpty(err.msg)) this.err.msg = err.msg
-    if (!eldeeb.isEmpty(err.extra)) this.err.extra = err.extra
+    if (!eldeeb.isEmpty(err.details)) this.err.details = err.details
     this.err.link = (!eldeeb.isEmpty(err.link)
       ? err.link
       : 'https://eldeeb.com/error/{num}-{msg}'

@@ -1,0 +1,1 @@
+call node _install > _install.txt

@@ -1,11 +1,25 @@
 generated via NUXT in: 03/11/2018 ,type=universal app ; using: express,bootstrap,axios,eslint,prettier,webpack,git,nodemon,
-==
+==================
 remove a file from previous history:
 git filter-branch -f --index-filter 'git rm --cached -f -q --ignore-unmatch "$file"' --prune-empty --tag-name-filter cat -- --all
+->$file = file path (related to the root folder)
 
 then force push:
 git push origin master --force
-==
-*/eldeeb/* contain useful samples (ex: models,data,pages,...)
-==
+==================
+eldeeb/samples/ contain useful samples (ex: models,data,pages,...)
+==================
+/db/
+  __db/step0/ : the original data (.json) from the old project (sqlite & php)
+  schema
+    - $collection.js: schema for the original colletion (contains the original data)
+    - tmp.$collection.js : temporary collections contains the final cached data (tmp collection use the same indexes of the original collection), use mongoDB.aggregate.$out
+    - $db.$collection.js : collection in $db database
+  examples
+$data.js => get data from the database
+$data_save.js => send data to db
+$data_update -> update the corresponding tmp collection
+index.js => connect to the database and returns eldeeb.promise
 
+add modifiedAt=true to every schema object (if not added will create modifiedAt as a string not date object)
+==================
