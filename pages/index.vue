@@ -1,74 +1,55 @@
 <template>
   <section class="container">
-    <div>
-      <logo/>
-      <h1 class="title">
-        almogtama3.com
-      </h1>
-      <h2 class="subtitle">
-        almogtama3.com
-      </h2>
-      <div class="links">
-        <nuxt-link to="/user/123" class="button--green">User (internal link)</nuxt-link>
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          class="button--green">Documentation</a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          class="button--grey">GitHub</a>
-      </div>
-    </div>
+    <div>data:{{data}}</div>
+    <ul>
+        <li v-for="(post, index) in data.posts" :key="index">
+          <nuxt-link :to="{ name: 'id', params: { id: post.id } }">
+            ({{post.id}}) {{ post.title }}
+          </nuxt-link>
+        </li>
+      </ul>
+
   </section>
 </template>
 
 <script>
-import Logo from '~/components/Logo.vue'
+
 
 export default {
-  components: {
-    Logo
-  },
-  async asyncData({ params }) {
-    // We can use async/await ES6 feature
-    const { data } = await axios.get(`https://localhost:3000/db/articles.js`)
-    return data
-  },
-  head() {
-    return {
-      title: this.data.title
+
+    async asyncData(app){
+    let data={
+       test:"OK",
+      ip:await app.$axios.$get('http://icanhazip.com/').then(null,x=>"ip error"),
+      wrong:await app.$axios.$get('http://invalid').then(null,x=>'Location not found'),
+      userAgent: (app&&app.headers ? app.headers['user-agent'] : (typeof navigator !== 'undefined' ? navigator.userAgent : 'No user agent (generated)')),
+      posts:await app.$axios.$get('https://jsonplaceholder.typicode.com/posts').then(x=>x.slice(1,5),err=>[]),
+
+
+
     }
+
+  //  console.log("data:",data)
+    return {data:data}
+  },
+  head(){
+  return {
+    title: this.data.test,
+       meta: [
+         {
+           hid: "description",
+           name: "description",
+           content: "About page description"
+         }
+       ]
   }
+  },
+
 }
 </script>
 
 <style>
-.container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
 
-.title {
-  font-family: 'Quicksand', 'Source Sans Pro', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
-
-.subtitle {
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
 
 .links {
   padding-top: 15px;
