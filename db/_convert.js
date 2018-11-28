@@ -21,7 +21,7 @@ module.exports = eldeeb.promise((resolve, reject) => {
       fs.writeFileSync(`./__db/step${step}/${file}.json`, JSON.stringify(data))
       console.log(`write: ${file}: OK`)
     } catch (err) {
-      if (!write) throw { msg: `step $step}: write: ${file} err`, error: err }
+      if (!write) throw { msg: `step ${step}: write: ${file} err`, error: err }
     }
   }
 
@@ -105,28 +105,26 @@ module.exports = eldeeb.promise((resolve, reject) => {
         item['extra'] && item['extra'].trim() != ''
           ? { contacts: item['extra'] }
           : {}
-      if (item['keywords']) {
-        if (item['approved'] == 1 || !('keywords' in item)) {
+      if (item['keywords'] && item['keywords'].length > 0) {
+        if (item['approved'] == 1 || !('approved' in item)) {
           //articles & categories
-          if (item['keywords'].length > 0) {
-            var tmp = item['keywords'].split(',')
-            item['keywords'] = []
-            for (let i = 0; i < tmp.length; i++) {
-              console.log('keyword:', tmp[i])
-              var done = false
-              for (let ii = 0; ii < keywords.length; ii++) {
-                if (keywords[ii]['text'] == tmp[i]) {
-                  item['keywords'].push(keywords[ii]['_id'])
-                  done = true
-                  break
-                }
+          var tmp = item['keywords'].split(',')
+          item['keywords'] = []
+          for (let i = 0; i < tmp.length; i++) {
+            console.log('keyword:', tmp[i])
+            var done = false
+            for (let ii = 0; ii < keywords.length; ii++) {
+              if (keywords[ii]['text'] == tmp[i]) {
+                item['keywords'].push(keywords[ii]['_id'])
+                done = true
+                break
               }
-              if (!done) {
-                if (tmp[i].trim() == '') continue
-                let id = ObjectID()
-                keywords.push({ text: tmp[i].trim(), _id: id })
-                item['keywords'].push(id)
-              }
+            }
+            if (!done) {
+              if (tmp[i].trim() == '') continue
+              let id = ObjectID()
+              keywords.push({ text: tmp[i].trim(), _id: id })
+              item['keywords'].push(id)
             }
           }
         } else {

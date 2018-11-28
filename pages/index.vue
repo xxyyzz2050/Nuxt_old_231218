@@ -29,6 +29,16 @@ import Logo from '~/components/Logo.vue'
 export default {
   components: {
     Logo
+  },
+  async asyncData({ params }) {
+    // We can use async/await ES6 feature
+    const { data } = await axios.get(`https://localhost:3000/db/articles.js`)
+    return data
+  },
+  head() {
+    return {
+      title: this.data.title
+    }
   }
 }
 </script>

@@ -1,1 +1,1 @@
-call node _install > _install.txt
+start node --inspect _install 

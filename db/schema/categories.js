@@ -4,7 +4,7 @@ module.exports = [
     name: 'string',
     slogan: 'string', //=subtitle
     link: 'string', //must be unique
-    keywords: { type: 'ObjectId', ref: 'keywords' },
+    keywords: [{ type: 'ObjectId', ref: 'keywords' }],
     desc: 'string',
     parent: { type: 'ObjectId', ref: 'categories' },
     fb_pages: ['string'], //link the category with fb pages, for instanceArticles, auto publish,...

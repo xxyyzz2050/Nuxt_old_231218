@@ -274,4 +274,34 @@ module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
   shortId() {
     return shortId()
   }
+
+  //----------------------- aggregation helpers -> move to class aggregate ------------------------ //
+  replace(entry, oldString, newString) {
+    return {
+      $trim: {
+        input: {
+          $reduce: {
+            input: {
+              $split: [entry, oldString]
+            },
+            initialValue: '',
+            in: {
+              $cond: [
+                { $eq: ['$$this', ''] }, //nx: or null
+                '$$value',
+                { $concat: ['$$value', newString, '$$this'] }
+              ]
+            }
+          }
+        },
+        chars: newString
+      }
+    }
+  }
+
+  implode(array, delimeter) {
+    delimeter = delimeter || ','
+    return array //nx: return a string of elements separated by the delimeter
+  }
+  //----------------------- /aggregation helpers ------------------------ //
 }

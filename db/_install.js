@@ -1,15 +1,21 @@
+/*
+nx: use insertMany()
+*/
+
 const convert = require('./_convert.js'),
   dbx = require('./index.js'),
   fs = require('fs')
 convert
   .done(() => {
-    dbx.connect().done(db => {
-      console.log('========= connected ============')
-      //console.log('db:', db)
-      let dir = './__db/step4'
-      fs.readdir(dir, (err, files) => {
-        if (err) throw { msg: 'readdir error', error: err }
-        let models = []
+    dbx
+      .connect()
+      .done(db => {
+        console.log('========= connected ============')
+        //console.log('db:', db)
+        let dir = './__db/step4',
+          models = [],
+          files = fs.readdirSync(dir)
+
         for (let f = 0; f < files.length; f++) {
           let file = files[f]
           if (file.slice(-5) != '.json') continue
@@ -19,15 +25,17 @@ convert
             { model } = db.model(coll, obj[0]) //true: add insertObj()
           models[coll] = model //to avoid re compile the model again (mongoose error)
           //test validation
+          console.log(`validate coll: ${coll} =========`)
           for (let i = 0; i < data.length; i++) {
             let doc = new model(data[i]),
               invalid = doc.validateSync()
             if (invalid)
-              return Promise.reject({
+              throw {
+                //or Promise.reject()
                 msg: 'validation error',
                 error: invalid,
                 doc: doc
-              })
+              }
             //if any collection has validation error, don't insert any data ar create any index
             else console.log(`validate ${coll}-${i}: ok`)
           }
@@ -46,11 +54,12 @@ convert
           for (let i = 1; i < obj.length; i++) {
             db.index(model, obj[i]).then(
               index => console.log(`${coll} index-${i} created`, index),
-              err =>
-                Promise.reject({
+              err => {
+                throw {
                   msg: `${coll} index-${i} error:`,
                   error: err
-                })
+                }
+              }
             )
           }
 
@@ -58,21 +67,22 @@ convert
           for (let i = 0; i < data.length; i++) {
             model.create(data[i]).then(
               doc => console.log(`${coll} data-${i}: OK`),
-              err =>
-                Promise.reject({
+              err => {
+                throw {
                   msg: `insert: ${coll} data-${i}`,
                   error: err
-                })
+                }
+              }
             )
           }
         }
 
         console.log('========= DONE ============')
       })
-    })
+      .fail(err => console.log('error#1:', err))
   })
 
-  .fail(err => console.error('error:', err))
+  .fail(err => console.log('error#2:', err))
 
 /*db.done(db => {
   content = require(`./articles.js`)

@@ -12,7 +12,7 @@ module.exports = [
     link: 'string', //must be unique (link title)
     expireAt: 'date',
     status: 'string', //pending,approved,rejected;
-    status_history: [{ type: 'Map', of: 'Array' }], //[{'time':[approved,user]}]
+    //status_history: [{ type: 'Map', of: 'Array' }], //[{'time':[approved,user]}] ->moved to db_history
     notes: [{ type: 'Map', of: 'string' }], //{$personId:text} ->notes from author,admin,or any person..
     location: { type: 'ObjectId', ref: 'locations' }, //for jobs,checkins,...
     extra: 'Map', //for jobs: {directApply:boolean,contacts:_id}; nx: or {type:map,of:..}

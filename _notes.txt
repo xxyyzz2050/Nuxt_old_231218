@@ -23,3 +23,6 @@ index.js => connect to the database and returns eldeeb.promise
 
 add modifiedAt=true to every schema object (if not added will create modifiedAt as a string not date object)
 ==================
+~ example
+https://github.com/jweboy/node-express-nuxt-mongodb-boilerplate
+==

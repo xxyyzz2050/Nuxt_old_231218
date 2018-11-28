@@ -6,11 +6,7 @@ module.exports = {
   title: 'string',
   subtitle: 'string',
   summary: 'string',
-  keywords: { type: 'map', of: 'string' },
   stars: 'number',
   link: 'string',
-  location: { type: 'ObjectId', ref: 'locations' },
-  extra: 'Map',
-  categories: { type: 'map', of: 'string' },
-  modifiedAt: { type: Date, default: Date.now }
+  location: { type: 'ObjectId', ref: 'locations' }
 }

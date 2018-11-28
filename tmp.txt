@@ -1,0 +1,47 @@
+
+D:\Downloads\__projects\NodeJs\almogtama3.com>node ts
+(node:4984) DeprecationWarning: current URL string parser is deprecated, and wil
+l be removed in a future version. To use the new parser, pass option { useNewUrl
+Parser: true } to MongoClient.connect.
+# data:
+ [ 
+
+{ _id: 596a4e53f5327b03dc1d02db,
+    title: 'Çáİíáã ÇáåäÏí ÇáÑÇÆÚ Chak De India - ŞÕÉ ÍŞíŞíÉ',
+    link: 'Chak De India',
+    category: 'ÇáÊäãíÉ ÇáÈÔÑíÉ æÊØæíÑ ÇáĞÇÊ' },
+
+
+  { _id: 596a4e53f5327b03dc1d02d5,
+    title: 'áÚÔÇŞ ÇáßæãíßÓ ãÌãæÚÉ ßÈíÑÉ ãä ÇáÊãÈáíÊ ÈÌæÏÉ ÚÇáíÉ ÌÏÇ',
+    link: 'linkTitle',
+    category:
+     { _id: 5ac34898f5327b03dc1d025f,
+       fb_pages: [ '276577362551858' ],
+       flags: [ 'hidden' ],
+       code: 'jobs',
+       modifiedAt: 2018-04-03T09:25:44.000Z,
+       shortId: '2DdLypokBA',
+       name: 'ÇáæÙÇÆİ',
+       link: 'ÇáæÙÇÆİ',
+       desc: 'æÙÇÆİ æİÑÕ Úãá æÊÏÑíÈ æãäÍ ÏÑÇÓíÉ İí ÇáÎÇÑÌ áÌãíÚ ÇáÊÎÕÕÇÊ æÇáÎÈÑÇ
+Ê ÇáãÎÊáİÉ , äÕÇÆÍ áßÊÇÈÉ ÇáÓíÑÉ ÇáÖÇÊíÉ æÎØÇÈ ÇáÊÛØíÉ- áÇ ÊÈÍË Úä Úãá äÍä äÌÚá
+ÇáÚãá íÈÍË Úäß',
+       __v: 0 } },
+
+
+
+  { _id: 5969e502f5327b03dc1d0923,
+    title: 'ßÊÇÈ ÅÏÇÑÉ ÇáãÔÑæÚÇÊ ÈÇááÛÉ ÇáÚÑÈíÉ',
+    link: 'PmBok Arabic',
+    category: 'ÇáåäÏÓÉ' },
+
+  { _id: 593a8045f5327b03dc1d0504,
+    title: 'ãØáæÈ ãåäÏÓ Çæ ãåäÏÓå ãÏäí Çæ ãÚãÇÑí',
+    link: 'ãåäÏÓíä ãÏäí ÚãÇÑÉ',
+    category: 'æÙÇÆİ ãåäÏÓíä ãÏäí' },
+
+  { _id: 596778f0f5327b03dc1d0638,
+    title: 'ãØáæÈ ãåäÏÓ ÊÕãíã ÏÇÎáí',
+    link: 'hiring interior engineer',
+    category: 'æÙÇÆİ åäÏÓÉ' } ]
