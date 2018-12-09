@@ -3,6 +3,7 @@
 #options.js contains db credintals
 eldeeb/test/options.js
 db/__db/
+tmp/
 #######################################################
 
 # Created by .ignore support plugin (hsz.mobi)
