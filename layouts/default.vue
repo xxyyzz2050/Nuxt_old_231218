@@ -1,6 +1,8 @@
 <template>
   <div>
+    <script src='http://localhost:8098'></script>
     <nuxt/>
+    <link rel="stylesheet" href="~assets/style.css"  />
   </div>
 </template>
 
