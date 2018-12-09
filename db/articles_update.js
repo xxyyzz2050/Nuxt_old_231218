@@ -120,7 +120,7 @@ mongo
       .addFields({
         author: ['$author.shortId', db.implode('$author.name', ' ')], //nx: [id,implode(first last)]
         link: {
-          //link=/article/[$category/$link/]shortId; regex:/\/article\/(?:.*\/)?([^\/]+)/i or /\/article\/.*\/(.*)/i  or ...[a-zA-Z0-9-_]+
+          //link=/article/[$category/$link/]shortId; regex:/\/articles\/(?:.*\/)?([^\/]+)/  or /\/articles\/.*\/(.*)/  or ...[a-zA-Z0-9-_]+
           $concat: [
             {
               $cond: [

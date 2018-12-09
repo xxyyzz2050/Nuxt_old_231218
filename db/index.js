@@ -4,10 +4,10 @@ usgae  require('index').then(db=>{==queries goes here==})
 */
 
 //nx: in production mode convert theese files to .json (no comments)
-const eldeeb = require('../eldeeb/'),
+const eldeeb = require('../eldeeb/').default,
   shortId = require('shortId').generate
 //or function(options){options=eldeeb.merge(require('../eldeeb.config.js').db,options)}
-module.exports = {
+export default {
   db: null,
   connect(options) {
     options = options || {}
