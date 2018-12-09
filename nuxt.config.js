@@ -2,6 +2,7 @@ const pkg = require('./package')
 
 module.exports = {
   mode: 'universal',
+  debug: true,
 
   /*
   ** Headers of the page
@@ -75,9 +76,13 @@ module.exports = {
       )
       if (vueLoader)
         //transform attributes (ex:src) into require(..)
-        vueLoader.options.transformToRequire = {
-          img: 'src',
+        vueLoader.options.transformAssetUrls = {
+          //https://vue-loader.vuejs.org/options.html#transformasseturls (transformToRequire renamed to transformAssetUrls: https://vue-loader.vuejs.org/migrating.html#options-deprecation)
+          img: ['src', 'data-src'],
           image: 'xlink:href',
+          link: 'href',
+          video: ['src', 'poster'],
+          source: 'src',
           'b-img': 'src',
           'b-img-lazy': ['src', 'blank-src'],
           'b-card': 'img-src',
@@ -85,6 +90,11 @@ module.exports = {
           'b-carousel-slide': 'img-src',
           'b-embed': 'src'
         }
+
+      //nx: *:src, *:href
+      config.node = {
+        fs: 'empty' //to solve: "import fs from 'fs'" when import or require 'fs' in any .vue file https://github.com/nuxt-community/dotenv-module/issues/11#issuecomment-376780588
+      }
     }
   }
 }
