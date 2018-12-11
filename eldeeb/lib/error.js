@@ -1,4 +1,4 @@
-const eldeeb = require('./index.js')
+import eldeeb from './index.js'
 eldeeb.mark = 'error'
 
 /*
@@ -6,7 +6,7 @@ eldeeb.mark = 'error'
 - wrong: throw new Error() from this file, will include file & lineNumber of this file (not the file witch throw the error), so we have to get the correct file,lineNumber
 
 */
-module.exports = function(err, throwError, jsError) {
+export default function(err, throwError, jsError) {
   //or: class error extends Error -> to add trace to error info (returns only Error object, not object)
   let errors = {
     0: {

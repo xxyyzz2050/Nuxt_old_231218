@@ -1,6 +1,6 @@
 const mode = process.env.NODE_ENV || 'development' //npm dev, check package.json->scripts
 
-module.exports = {
+export default {
   root: 'D:/Downloads/__projects/NodeJs/almogtama3.com/',
   db: {
     user: 'xxyyzz2050',

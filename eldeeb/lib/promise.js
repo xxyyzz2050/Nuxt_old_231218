@@ -1,4 +1,4 @@
-const eldeeb = require('./index.js')
+import eldeeb from './index.js'
 eldeeb.mark = 'promise'
 /*
 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
@@ -28,7 +28,7 @@ promise.finally() is 'Draft' https://developer.mozilla.org/en-US/docs/Web/JavaSc
 
 */
 
-module.exports = class promise extends Promise {
+export default class promise extends Promise {
   constructor(fn, done, failed, stop) {
     //wait until fn finish excuting, fn() has to settle (resolve or reject) the promise
     //stop is used in case of a new instance is created from anoter context ex: this.wait(1) will create another instance and may like to stop the chain after resolving it

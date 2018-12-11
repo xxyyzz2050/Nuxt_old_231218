@@ -1,8 +1,8 @@
-const Schema = require('mongoose').Schema,
-  eldeeb = require('./index.js')
+import eldeeb from './index.js'
+import { Schema } from 'mongoose'
 eldeeb.op.mark = 'db/mongoDB-schema'
 
-module.exports = class db_mongoDB_schema extends Schema {
+export default class db_mongoDB_schema extends Schema {
   constructor(obj, options) {
     //console.log('==obj==', obj)
     return eldeeb.run('()', () => {

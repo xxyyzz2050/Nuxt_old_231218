@@ -1,10 +1,16 @@
-module.exports = {
+import util from 'util'
+//console.log('util:', util) //using require&module.exports will prevent this line from calling when run via localhost (called when run via cmd) ,the problem is in : eldeeb/index/isArray->Symbol.iterator, adding quotes will fix it obj['Symbol.iterator'] but it will return a wrong value; may be the error is by Nuxt or babel
+export default {
   op: {
     //options
     log: false, //nx: min log level
     minLogLevel: 'log', //log,warn,error (verbose)
     debug: false,
     mark: '' //mark prefix
+  },
+  mode(mode) {
+    if (mode == 'dev') mode = 'development'
+    return mode ? process.env.NODE_ENV == mode : process.env.NODE_ENV
   },
   run: function(mark, promise, fn) {
     //always use arrow function to keep "this" referce to the original function context (not "run()" context)
@@ -40,7 +46,7 @@ module.exports = {
 
     if (!promise) {
       try {
-        f = fn()
+        let f = fn()
         if (mark && this.op.log) console.log('success: eldeeb:', mark, f)
         return f
       } catch (e) {
@@ -58,22 +64,42 @@ module.exports = {
   err: function(e, at, extra) {
     if (typeof at == 'undefined') at = 'eldeeb.js'
     console.error(
-      `Error @eldeeb: ${at} (${e.name})${e.message ? ' :' + e.message : ''}${
-        e.lineNumber
-          ? ' @' + e.lineNumber + ' in' + e.fileName
-          : e.stack
-            ? e.stack
-            : e.description
-              ? e.description
-              : '--'
-      }\n->` /*, (extra ? extra : "")*/
+      `Error @eldeeb: ${at} ${e.name}${
+        e.message ? ': ' + e.message : e.description ? ': ' + e.description : ''
+      }\n${
+        e.lineNumber ? ' @' + e.lineNumber + ' in' + e.fileName + '\n' : ''
+      }${e.stack ? e.stack : ''}\n->` /*, (extra ? extra : "")*/
     )
     //console.error("Error @eldeeb: " + at + "(" + e.name + "): " + e.message + " @" + (e.lineNumber || "") + ":" + (e.columnNumber || "") + " in: " + (e.fileName || "--") + " \n->", (extra ? extra : "")) //+"; by:"+(e.stack||e.description||"")
   },
+  log(obj, mark, type) {
+    //nx: log(mark='',type='log',...obj)
+    if (!this.op.log || process.env.NODE_ENV != 'development') return
+    mark = mark || ''
+    type = type || mark == 'error' ? 'error' : 'log'
+    obj = util.inspect(obj, {
+      maxArrayLength: null,
+      depth: null,
+      colors: true,
+      compact: false,
+      breakLength: 100
+    })
+    if (typeof mark == 'string')
+      mark = (this.op.mark != '' ? this.op.mark + '/' : '') + mark
+    else if (mark instanceof Array)
+      mark[0] = (this.op.mark != '' ? this.op.mark + '/' : '') + mark[0]
+
+    console[type](`---\n ${mark}:\n`, obj, '\n---')
+  },
+  now() {
+    //ms
+    return Math.round(new Date().getTime())
+  },
   isArray: function(obj) {
     return (
-      this.objectType(obj) == ('null' || 'undefined' || 'object') ||
-      typeof obj[Symbol.iterator] == 'function'
+      obj &&
+      (obj instanceof Array ||
+        (typeof obj != 'string' && typeof obj[Symbol.iterator] == 'function'))
     )
   },
   inArray: function(str, arr, keepCase) {
@@ -115,7 +141,7 @@ module.exports = {
   },
   in_array: function(x, a, str) {
     if (typeof a != 'object') return
-    for (i = 0; i < a.length; i++) {
+    for (let i = 0; i < a.length; i++) {
       if (a[i] == x || (str && x.indexOf(a[i]) != -1)) return true
     }
   },
@@ -136,7 +162,7 @@ module.exports = {
   merge(target, ...obj) {
     //merge objects,arrays,classes (must besame type) ;
     return this.run(['merge', target, ...obj], () => {
-      type = this.objectType(target)
+      let type = this.objectType(target)
       for (var i = 1; i < arguments.length; i++) {
         if (this.objectType(arguments[i]) !== type) return target
       }
@@ -165,7 +191,7 @@ module.exports = {
           .pop()
           .toLowerCase() == 'json'
       )
-        return require(data)
+        return require(data) //load a .json file
       data = require('fs').readFileSync(data)
       return JSON.parse(data)
     } else return JSON.stringify(data)
@@ -182,19 +208,20 @@ module.exports = {
       options = type
       type = 'mongoDB'
     }
-
-    return new (require(`./db-${type}.js`))(options, done, fail, events) //nx: if file_exists
+    let db = require(`./db-${type}.js`).default
+    return new db(options, done, fail, events) //nx: if file_exists
   },
 
   promise(fn, done, failed) {
     //eldeeb = this
-    promise = require('./promise.js')
+    let promise = require('./promise.js').default
     return new promise(fn, done, failed)
   },
   when(fn, done, failed) {
     return this.promise(fn, done, failed)
   },
   error(err, throwError, jsError) {
-    return new require('./error.js')(err, throwError, jsError)
+    let promise = require('./error.js').default
+    return new promise(err, throwError, jsError)
   }
 }

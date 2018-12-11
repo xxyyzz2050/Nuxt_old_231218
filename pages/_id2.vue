@@ -14,7 +14,7 @@
 <script>
 import axios from 'axios'
 
-export default {
+module.exports= {
 
   async asyncData(app){
     let data={

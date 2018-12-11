@@ -1,3 +1,4 @@
+//https://nuxtjs.org/api/configuration-build/
 const pkg = require('./package')
 
 module.exports = {
@@ -21,11 +22,12 @@ module.exports = {
   /*
   ** Customize the progress-bar color
   */
-  loading: { color: '#fff' },
+  loading: { color: 'red' },
 
   /*
   ** Global CSS
   */
+
   css: [],
 
   /*
@@ -80,9 +82,11 @@ module.exports = {
           //https://vue-loader.vuejs.org/options.html#transformasseturls (transformToRequire renamed to transformAssetUrls: https://vue-loader.vuejs.org/migrating.html#options-deprecation)
           img: ['src', 'data-src'],
           image: 'xlink:href',
-          link: 'href',
+          link: 'href', // this will resolve to <link href="[object Object]" />;
           video: ['src', 'poster'],
           source: 'src',
+          object: 'src',
+          embed: 'src',
           'b-img': 'src',
           'b-img-lazy': ['src', 'blank-src'],
           'b-card': 'img-src',
@@ -96,5 +100,7 @@ module.exports = {
         fs: 'empty' //to solve: "import fs from 'fs'" when import or require 'fs' in any .vue file https://github.com/nuxt-community/dotenv-module/issues/11#issuecomment-376780588
       }
     }
+
+    //  extractCSS: { allChunks: true } //https://github.com/nuxt/nuxt.js/issues/1533#issuecomment-419369363; replaced with: optimization.splitChunks https://webpack.js.org/configuration/optimization/#optimization-splitchunks
   }
 }

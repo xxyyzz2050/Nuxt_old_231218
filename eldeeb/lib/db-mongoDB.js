@@ -1,12 +1,12 @@
-const mongoose = require('mongoose'),
-  eldeeb = require('./index.js'),
-  schema = require('./db-mongoDB-schema.js'),
-  model = require('./db-mongoDB-Model.js'),
-  shortId = require('shortId').generate
+import eldeeb from './index.js'
+import mongoose from 'mongoose'
+import schema from './db-mongoDB-schema.js'
+import model from './db-mongoDB-Model.js'
+import { generate as shortId } from 'shortId'
 
 eldeeb.op.mark = 'db/mongoDB'
 
-module.exports = class db_mongoDB /* extends mongoose.constructor*/ {
+export default class db_mongoDB /* extends mongoose.constructor*/ {
   //mongoose/lib/index.js exports new mongoose(), not the class itself; also mongoose is a Function
   constructor(options, done, fail, events) {
     //nx: return Promise

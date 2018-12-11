@@ -4,31 +4,33 @@ create tmp collections for articles & articles_index (index page)
 - we make a tmp collection and save a ready-to-use data because many devices will retrive these data (instead of making each device handle cahing process)
 nx: index by categoy or use article_categories
 */
-const mongo = require('./index.js'),
-  util = require('util'),
-  log = function(mark, obj) {
-    if (!obj) {
-      obj = mark
-      mark = null
-    }
-    mark = mark || ''
-    obj = util.inspect(obj, {
-      maxArrayLength: null,
-      depth: null,
-      colors: true,
-      compact: false,
-      breakLength: 100
-    })
-    console.log(`--- ${mark}:\n`, obj)
+import mongo from './index.js'
+import util from 'util'
+import schema from './schema/articles.js'
 
-    //fs.writeFileSync('log.htm', obj.replace(//g, '\n')) -> use chrome devTools
+const log = function(mark, obj) {
+  if (!obj) {
+    obj = mark
+    mark = null
   }
+  mark = mark || ''
+  obj = util.inspect(obj, {
+    maxArrayLength: null,
+    depth: null,
+    colors: true,
+    compact: false,
+    breakLength: 100
+  })
+  console.log(`--- ${mark}:\n`, obj)
+
+  //fs.writeFileSync('log.htm', obj.replace(//g, '\n')) -> use chrome devTools
+}
 
 mongo
   .connect()
   .done(db => {
     console.log('== articles_index:Start ==')
-    let { model } = db.model('articles', require('./schema/articles.js')[0]) //or use mongo.model()
+    let { model } = db.model('articles', schema[0]) //or use mongo.model()
 
     let agg = model
       .aggregate()

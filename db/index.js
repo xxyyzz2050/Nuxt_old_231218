@@ -4,14 +4,17 @@ usgae  require('index').then(db=>{==queries goes here==})
 */
 
 //nx: in production mode convert theese files to .json (no comments)
-const eldeeb = require('../eldeeb/').default,
-  shortId = require('shortId').generate
+import eldeeb from '../eldeeb/'
+import { generate as shortId } from 'shortId'
+import config from '../eldeeb.config.js'
+import schema from './schema/objects.js'
 //or function(options){options=eldeeb.merge(require('../eldeeb.config.js').db,options)}
+
 export default {
   db: null,
   connect(options) {
     options = options || {}
-    options = eldeeb.merge(require('../eldeeb.config.js').db, options)
+    options = eldeeb.merge(config.db, options)
     options.debug = false
     return eldeeb.db('mongoDB', options).done(db => {
       //if (!db) Promise.reject('db=null!')
@@ -23,7 +26,7 @@ export default {
     let options,
       { model: objectsModel, schema: objectsSchema } = this.db.model(
         'objects',
-        require(`./schema/objects.js`)[0],
+        schema[0],
         { modifiedAt: true }
       )
     if (obj)

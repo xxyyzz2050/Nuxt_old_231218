@@ -1,4 +1,5 @@
 generated via NUXT in: 03/11/2018 ,type=universal app ; using: express,bootstrap,axios,eslint,prettier,webpack,git,nodemon,
+-> nuxt scaffolded project
 ==================
 remove a file from previous history:
 git filter-branch -f --index-filter 'git rm --cached -f -q --ignore-unmatch "$file"' --prune-empty --tag-name-filter cat -- --all
@@ -28,5 +29,15 @@ https://nuxtjs.org/examples
 https://github.com/jweboy/node-express-nuxt-mongodb-boilerplate
 ==
 nuxt-edge is the beta version of nuxt https://medium.com/nuxt/nuxt-2-is-coming-oh-yeah-212c1a9e1a67
-==
+==================
+[11.12.2018] using commonJs:require & module.exports causes some problems (so we switched to ES6:import & export):
+ - eldeeb/lib/index.js->isArray->obj[Symbol.iterator] exits the code without any error, 
+ - pages/test.vue : test=require('../test.js') 
+   test.js : require('./eldeeb/..')/*contains 'Symbol.iterator'*/ module.exports="OK"
+    using module.exports: test={}
+    using import & export: test=OK
+- ES6 is the standard spec of js, so we will use it (i.e: import & export)
+- currently node.js supports ES6 module system in expremental mode only, Nuxt uses babel transpiler to convert them to commonJS module system
+==================
+
 

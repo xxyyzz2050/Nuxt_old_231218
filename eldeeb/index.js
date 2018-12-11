@@ -1,1 +1,3 @@
-module.exports = require('./lib/')
+export { default } from './lib/'
+
+//module.exports = require('./lib/')
