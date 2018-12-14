@@ -1,0 +1,1 @@
+[{"_id":"5c126cf3d9001d58fc9e7c44","name":"owner","permissions":{"all":true},"scope":"all"},{"_id":"5c126cf3d9001d58fc9e7c45","name":"new member","permissions":{"articles":"all","comment":true,"message":10},"scope":{"articles":"own","comment":"any","message":"any"}}]

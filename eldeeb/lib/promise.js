@@ -140,17 +140,12 @@ export default class promise extends Promise {
   }
 
   done(fn, stop) {
-    //return this.then(fn, null, typeof stop == 'undefined' ? true : false) //default:stop=true
-    return this.then(fn, null, stop)
+    return this.then(fn, null, typeof stop == 'undefined' ? true : false) //default:stop=true
   }
 
   fail(fn, stop) {
-    /*
-       1- .then(null,fn)
-       2- catch(e)
-       3- if(stop)stop the chain
-    */
-    return this.then(null, fn, stop)
+    //same as catch() but eits the chain by default
+    return this.then(null, fn, typeof stop == 'undefined' ? true : false)
   }
 
   /*catch(fn, stop) {

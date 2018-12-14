@@ -1,7 +1,10 @@
 <template>
 <div>
  <article class="post">
-    <div class="post-header"></div>
+    <div class="post-header">
+     <div class="tools"></div>
+     <div class="user"></div>
+    </div>
     <div class="post-body">
       <h1 class="post-title" dir="auto"><nuxt-link to="">{{data.article.title}}</nuxt-link></h1>
       <h3 class="post-subtitle" dir="auto" v-if="data.article.subtitle">{{data.article.subtitle}}</h3>
@@ -10,16 +13,9 @@
         {{data.article.content}}
         <div class="post-more" v-if="data.article.more">see more..</div>
       </div>
-
-
-
     </div>
 
   </article>
-  <div>
-    <hr />
-    {{data}}
-  </div>
   <nuxt-link :to="{path:`/articles/`}">Home</nuxt-link>
 </div>
 </template>
@@ -34,10 +30,10 @@ import article from '../../db/article.js'
 export default {
  async asyncData(app){
    let shortId=app.req.originalUrl.match(/\/articles\/(?:.*\/)?([^\/]+)/)
-   if(shortId){
-     shortId=shortId[1]
-     eldeeb.log(shortId,"shortId");
-   }
+   eldeeb.log(shortId,"shortId");
+   if(shortId) shortId=shortId[1]
+
+
 
     return {data:{
       test:"ok",

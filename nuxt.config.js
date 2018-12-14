@@ -55,6 +55,7 @@ module.exports = {
   ** Build configuration
   */
   build: {
+    //extractCSS: true,
     /*
     ** You can extend webpack config here
     */
@@ -76,6 +77,7 @@ module.exports = {
       let vueLoader = config.module.rules.find(
         rule => rule.loader == 'vue-loader'
       )
+      //or use {build: veu:{transformAssetUrls:{..}} }
       if (vueLoader)
         //transform attributes (ex:src) into require(..)
         vueLoader.options.transformAssetUrls = {

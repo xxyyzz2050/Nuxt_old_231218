@@ -1,15 +1,16 @@
 //convert data (called by _install.js)
+//use /_babel.bat to transpile files and then run this file from _babel folder
 //use rowid temporary to join data, replace it with objectID
 /* ObjectID = require('mongodb').ObjectID; _id=ObjectID() */
 //nx: create shortId for each entry
-const eldeeb = require('../eldeeb/'),
+const eldeeb = require('../eldeeb/').default,
   ObjectID = require('mongodb').ObjectID,
   fs = require('fs'),
   shortId = require('shortid').generate
 
-module.exports = eldeeb.promise((resolve, reject) => {
+export default eldeeb.promise((resolve, reject) => {
   for (let i = 1; i < 5; i++) {
-    dir = `./__db/step${i}`
+    let dir = `./__db/step${i}`
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir)
     }
@@ -35,10 +36,10 @@ module.exports = eldeeb.promise((resolve, reject) => {
   var step = 0
   //-----------step 1: put every table in a separate file ($db_$table)
   console.log(`===========step: ${++step}==============`)
-  files = fs.readdirSync(`./__db/step${step - 1}`)
+  let files = fs.readdirSync(`./__db/step${step - 1}`)
   if (!files) throw { msg: `step ${step}: no files`, error: null }
   for (let f in files) {
-    file = files[f]
+    let file = files[f]
     if (file.indexOf('-data.json') > -1) {
       let fileName = file.replace('-data.json', ''),
         data = require(`./__db/step${step - 1}/${file}`)
@@ -73,11 +74,11 @@ module.exports = eldeeb.promise((resolve, reject) => {
   console.log(`===========step: ${++step}==============`)
   files = fs.readdirSync(`./__db/step${step - 1}`)
   if (!files) throw { msg: `step ${step}: no files`, error: null }
-  var item,
+  let item,
     rel = {},
     keywords = require(`./__db/step4/keywords.json`)
   for (let f in files) {
-    file = files[f]
+    let file = files[f]
     if (file.indexOf('.json') == -1) continue
     let fileName = file.replace('.json', '')
     rel[fileName] = {}
@@ -108,11 +109,11 @@ module.exports = eldeeb.promise((resolve, reject) => {
       if (item['keywords'] && item['keywords'].length > 0) {
         if (item['approved'] == 1 || !('approved' in item)) {
           //articles & categories
-          var tmp = item['keywords'].split(',')
+          let tmp = item['keywords'].split(',')
           item['keywords'] = []
           for (let i = 0; i < tmp.length; i++) {
             console.log('keyword:', tmp[i])
-            var done = false
+            let done = false
             for (let ii = 0; ii < keywords.length; ii++) {
               if (keywords[ii]['text'] == tmp[i]) {
                 item['keywords'].push(keywords[ii]['_id'])
@@ -154,11 +155,10 @@ module.exports = eldeeb.promise((resolve, reject) => {
   //-------------------- /mongo fields
   //------ step 3: convert table structures ------//
   console.log(`===========step: ${++step}==============`)
-  var rel = require(`./__db/step${step - 2}/_rel.json`)
+  rel = require(`./__db/step${step - 2}/_rel.json`)
 
   function adjust(file, output, fn, del) {
-    var data = require(`./__db/step${step - 1}/${file}.json`)
-    data = fn(data)
+    let data = fn(require(`./__db/step${step - 1}/${file}.json`))
     if (del && del.length > 0) {
       for (let item = 0; item < data.length; item++) {
         for (let i = 0; i < del.length; i++) {
@@ -173,7 +173,7 @@ module.exports = eldeeb.promise((resolve, reject) => {
     'u_users',
     'persons',
     data => {
-      var roles = require(`./__db/step4/roles.json`),
+      let roles = require(`./__db/step4/roles.json`),
         users = []
       for (let i = 0; i < data.length; i++) {
         item = data[i]
@@ -223,7 +223,7 @@ module.exports = eldeeb.promise((resolve, reject) => {
     'articles_topics',
     'articles',
     data => {
-      var articles_content = [],
+      let articles_content = [],
         articles_pending = []
       for (let i = 0; i < data.length; i++) {
         item = data[i]
@@ -234,8 +234,8 @@ module.exports = eldeeb.promise((resolve, reject) => {
           item['link'] = item['link_title']
 
         articles_content.push({
-          article: item['_id'],
-          original: item['original_content']
+          _id: item['_id'],
+          original: item['original_content'] //entities.decodeHTML(item['original_content'])
         })
       }
 
@@ -249,6 +249,7 @@ module.exports = eldeeb.promise((resolve, reject) => {
       'source',
       'link_title',
       'original_content',
+      'content',
       'amp',
       'instantArticles'
     ]
@@ -261,7 +262,7 @@ module.exports = eldeeb.promise((resolve, reject) => {
     'categories',
     data => {
       for (let i = 0; i < data.length; i++) {
-        item = data[i]
+        let item = data[i]
         item['name'] = item['title']
         item['link'] = item['link_title']
         item['desc'] = item['description']
@@ -285,7 +286,7 @@ module.exports = eldeeb.promise((resolve, reject) => {
     'article_categories',
     data => {
       for (let i = 0; i < data.length; i++) {
-        item = data[i]
+        let item = data[i]
         item['article'] = rel['articles_topics'][item['topic']]
         item['category'] = rel['articles_groups'][item['group_id']]
 
@@ -303,7 +304,7 @@ module.exports = eldeeb.promise((resolve, reject) => {
     'logins',
     data => {
       for (let i = 0; i < data.length; i++) {
-        item = data[i]
+        let item = data[i]
         item['user'] = rel['u_users'][item['user']]
         if (item['confirmed'] == 1)
           item['confirmed'] = ObjectID(item['_id']).getTimestamp()
@@ -320,9 +321,9 @@ module.exports = eldeeb.promise((resolve, reject) => {
     'u_adsense',
     'accounts',
     data => {
-      var persons = require(`./__db/step${step}/persons.json`)
+      let persons = require(`./__db/step${step}/persons.json`)
       for (let i = 0; i < data.length; i++) {
-        item = data[i]
+        let item = data[i]
         item['entry'] = {
           id: item['adsense_id'],
           channel: item['channel'],
@@ -373,8 +374,8 @@ module.exports = eldeeb.promise((resolve, reject) => {
   console.log(`===========step: ${++step}==============`)
   files = fs.readdirSync(`./__db/step${step - 1}`)
   for (let f in files) {
-    file = files[f]
-    data = require(`./__db/step${step - 1}/${file}`)
+    let file = files[f]
+    let data = require(`./__db/step${step - 1}/${file}`)
     for (let i = 0; i < data.length; i++) {
       item = data[i]
       for (let key in item) {

@@ -3,8 +3,8 @@ import mongo from './index.js'
 import Data from '../eldeeb/lib/custom/data'
 import schema from './schema/tmp.articles.js'
 
-export default function(shortId) {
-  if (!shortId) return null
+export default async function(shortId) {
+  if (!shortId) throw new Error('shortId is empty')
   let data = new Data()
   return data.cache(
     `articles/${shortId}.json`,

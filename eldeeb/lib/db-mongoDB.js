@@ -214,11 +214,11 @@ export default class db_mongoDB /* extends mongoose.constructor*/ {
   once(event, callback) {
     return this.on(event, callback, true)
   }
-  schema(obj, options) {
-    return new schema(obj, options) //mongoose.Schema(...)
+  schema(obj, options, indexes) {
+    return new schema(obj, options, indexes) //mongoose.Schema(...)
   }
 
-  model(coll, schema, options) {
+  model(coll, schema, options, indexes) {
     //nx: field: anotherSchema ??
     if (!this.connection) return { model: null, schema: null }
     return eldeeb.run(['model', schema, options], () => {
@@ -230,7 +230,7 @@ export default class db_mongoDB /* extends mongoose.constructor*/ {
       if (!(schema instanceof mongoose.Schema)) {
         options = options || {}
         if (!('collection' in options)) options['collection'] = coll
-        schema = this.schema(schema, options)
+        schema = this.schema(schema, options, indexes)
       }
 
       return { model: this.connection.model(coll, schema), schema: schema } //var {model,schema}=db.model(..); or {model:MyModel,schema:mySchema}=db.model(..) then: schema.set(..)
@@ -241,11 +241,23 @@ export default class db_mongoDB /* extends mongoose.constructor*/ {
 
   createIndex(model, index, options) {
     //nx: if(model:object)model=this.model(model); nx: directly use mongoDB
-    //schema.index() only set index for autoIndex option
+    //if schema contains indexes (schema.index()), use autoIndex:true or model.createIndexes()
+    //use this function to create indexes that is not defined in the schema
+    // model.collection perform native mongodb queries (not mongoose queries)
     let defaultOptions = {
       /*name:'index'*/
     } //index name must be unique accross the table
     options = eldeeb.merge(defaultOptions, options)
+    if (index instanceof Array) {
+      let r = []
+      for (i = 0; i < index.length; i++) {
+        if (index[i] instanceof Array)
+          return this.createIndex(model, index[i][0], index[i][1])
+        //or merge(options,index[i][1])
+        else return this.createIndex(model, index[i][0], options)
+      }
+      return r
+    }
     return model.collection.createIndex(index, options) //promise
     /*
       eldeeb.promise(model.collection.createIndex(indexes, options),x=>x,err=>console.error(err))

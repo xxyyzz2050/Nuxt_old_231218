@@ -3,10 +3,18 @@
     <script src='http://localhost:8098'></script>
 
     <nuxt/>
-    <link rel="stylesheet" href="~assets/style.css" data-test="ok"  /> <!--nx: .css gives error; changing to .jpg success -->
     <img src="~assets/img/cv.jpg"  data-test="ok2"/>
   </div>
 </template>
+<script>
+export default{
+  head: { link: [  { rel: 'stylesheet', href: '/style.css' }], //nx: ~assets/style.css
+
+
+
+}
+}
+</script>
 
 <style>
 html {

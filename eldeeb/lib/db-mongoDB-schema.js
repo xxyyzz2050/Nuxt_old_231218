@@ -3,7 +3,7 @@ import { Schema } from 'mongoose'
 eldeeb.op.mark = 'db/mongoDB-schema'
 
 export default class db_mongoDB_schema extends Schema {
-  constructor(obj, options) {
+  constructor(obj, options, indexes) {
     //console.log('==obj==', obj)
     return eldeeb.run('()', () => {
       /*
@@ -40,12 +40,13 @@ export default class db_mongoDB_schema extends Schema {
         options = eldeeb.merge(defaultOptions, options)
         var schema = super(obj, options)
       } else {
-        if (!(obj instanceof Schema)) return //nx: throw error
+        if (!(obj instanceof Schema)) return //nx: add indexes & modify options
         suber()
         var schema = obj //nx: call super()?
       }
 
       if (adjust) {
+        //deeply modify obj fields, allowing to create base obj and modify it for each schema
         for (let key in adjust) {
           if (eldeeb.objectType(adjust[key] == 'object')) {
             for (let x in adjust[key]) {
@@ -53,6 +54,17 @@ export default class db_mongoDB_schema extends Schema {
             }
           } else schema[key] = adjust[key]
         }
+      }
+
+      //add indexes to schema, use this option to create indexes via autoIndex:true or model.createIndexes()
+      //to create indexes without adding them to schama: eldeeb.db().index(model,indexes,options)
+
+      if (indexes && indexes instanceof Array) {
+        for (let i = 0; i < indexes.length; i++)
+          if (indexes[i] instanceof Array)
+            schema.index(indexes[i][0], indexes[i][1])
+          //[{fields},{options}]
+          else schema.index(indexes[i]) //{fields}
       }
 
       return schema

@@ -1,32 +1,35 @@
-const eldeeb = require('../eldeeb/'),
-  data = new (require('../eldeeb/lib/custom/data'))()
+import '@babel/polyfill'
+import dbx from './index.js'
 
-eldeeb.op.log = true
-process.env.NODE_ENV = 'development'
+console.clear()
+console.log(Math.floor(Math.random() * 1000))
+new Promise(r => r())
+  .then(() => dbx.connect({ autoIndex: false }))
+  .then(db => {
+    console.log('== connected ==')
+    let dir = './__db/step4',
+      coll = 'xx',
+      obj = require(`./schema/${coll}.js`)
+    let { model, schema } = db.model(
+      coll,
+      obj[0],
+      { validateBeforeSave: false },
+      obj.slice(1)
+    )
 
-let articles = data.cache(
-  'articles_index.json',
-  () => {
-    const mongo = require('./index.js')
-    return mongo.connect().done(db => {
-      let { model } = db.model(
-        'tmp.articles_index',
-        require('./schema/tmp.articles_index.js')[0]
-      )
-      return model.find().limit(5)
-      //.then(data => Promise.resolve(data))
-      //  .then(data => console.log('data', data))
+    console.log('schema:', schema)
+    console.log('obj.slice(1):', obj.slice(1))
+    model.createIndexes().then(idx => {
+      console.log(`${coll}: indexs created`, idx) //nx: is createIndexes() resolve [indexes]?
+      let data = `${dir}/${coll}.json`
+      if (!fs.existsSync(data)) return
+      data = require(data)
+      if (!data) throw new Error('no data')
+      model
+        .insertMany(data, { ordered: false })
+        .then(x => console.log('Done:', x))
+        .catch(err => console.error('err:', err))
     })
-  },
-  3
-)
-
-eldeeb.log(articles, 'articles')
-
-/*
-//how to return a value from a promise (i.e 'f'= the final result)
-var p = new Promise(r => {
-  setTimeout(() => r('ok'), 1000)
-})
-var result = p //.then(x => Promise.resolve(x))
-console.log(result)*/
+  })
+  .then(x => console.log('Done2:', x))
+  .catch(err => console.error('err2:', err))
